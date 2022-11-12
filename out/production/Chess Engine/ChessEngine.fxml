@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="630.0" prefWidth="920.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+   <children>
+      <HBox id="navbar" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="89.0" prefWidth="920.0" spacing="20.0">
+         <children>
+            <Circle fx:id="avatar" fill="WHITE" radius="32.0" stroke="BLACK" strokeType="INSIDE" style="-fx-stroke-width: 2; -fx-stroke: #fff;" />
+            <Label id="level-label" fx:id="level" prefHeight="35.0" prefWidth="106.0" text="Level 1" textFill="WHITE">
+               <HBox.margin>
+                  <Insets right="420.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <ToggleButton id="new-game-button" fx:id="newGameButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="47.0" prefWidth="120.0" text="New Game" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </ToggleButton>
+            <ToggleButton id="appearance-button" fx:id="appearanceButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="47.0" prefWidth="120.0" text="Appearance" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </ToggleButton>
+         </children>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <padding>
+            <Insets left="20.0" right="20.0" />
+         </padding>
+      </HBox>
+      <Line endX="820.0" fill="#717171" startX="-100.0" stroke="#717171" />
+      <HBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="460.0" prefWidth="460.0">
+         <children>
+            <BorderPane>
+               <center>
+                  <BorderPane id="chess-border" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="460.0" prefWidth="460.0">
+                     <center>
+                        <GridPane id="chess-board" fx:id="chessBoard" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="440.0" prefWidth="440.0">
+                          <columnConstraints>
+                            <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                              <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                            <ColumnConstraints halignment="CENTER" hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="55.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                              <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                              <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                              <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                              <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                              <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" valignment="CENTER" vgrow="NEVER" />
+                          </rowConstraints>
+                        </GridPane>
+                     </center>
+                  </BorderPane>
+               </center>
+               <top>
+                  <HBox id="chess-board-cols" alignment="CENTER" prefHeight="32.0" prefWidth="460.0" spacing="49.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <Label text="a" />
+                        <Label text="b" />
+                        <Label text="c" />
+                        <Label text="d" />
+                        <Label text="e" />
+                        <Label text="f" />
+                        <Label text="g" />
+                        <Label text="h" textAlignment="CENTER" />
+                     </children>
+                     <padding>
+                        <Insets left="25.0" />
+                     </padding>
+                  </HBox>
+               </top>
+               <left>
+                  <VBox alignment="CENTER" prefHeight="460.0" prefWidth="32.0" spacing="37.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <Label text="8" />
+                        <Label text="7" />
+                        <Label text="6" />
+                        <Label text="5" />
+                        <Label text="4" />
+                        <Label text="3" />
+                        <Label text="2" />
+                        <Label text="1" textAlignment="CENTER" />
+                     </children>
+                  </VBox>
+               </left>
+            </BorderPane>
+         </children>
+         <VBox.margin>
+            <Insets bottom="25.0" left="100.0" right="100.0" top="25.0" />
+         </VBox.margin>
+      </HBox>
+   </children>
+</VBox>

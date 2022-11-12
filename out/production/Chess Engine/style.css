@@ -1,0 +1,96 @@
+#navbar {
+    -fx-background-color: linear-gradient(from 20% 25% to 100% 100%, #983cc9, #1a54db);
+    /* nice blue gray color: 125873 */
+}
+
+#new-game-button, #appearance-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 16.5;
+}
+
+#new-game-button:hover, #appearance-button:hover,
+ #new-game-button:selected, #appearance-button:selected {
+    -fx-background-color: rgba(0, 0, 0, 0.3);
+    -fx-background-radius: 4;
+}
+
+#chess-board {
+    -fx-background-color: linear-gradient(to right, #3c3c3c, #5a5a5a);
+    /*-fx-background-color: linear-gradient(to right, #125873, #5a5a5a);*/
+    -fx-effect: dropshadow(gaussian, #959595, 15, 0.15, 0, 0);
+}
+
+.label {
+    -fx-text-fill: #858585;
+}
+
+#level-label {
+    -fx-text-fill: #fff;
+}
+
+
+#new-game-root-vbox {
+
+    -fx-effect: dropshadow(gaussian, rgba(159, 159, 159, 0.5), 5, 0.05, 0, 5);
+
+    -fx-background-color: #fff;
+    -fx-background-radius: 7;
+
+    -fx-border-color: #606060;
+    -fx-border-radius: 7;
+    -fx-border-width: 1px;
+
+    -fx-pref-width: 190px;
+    -fx-pref-height: 120px;
+}
+
+#team-prompt-container {
+    -fx-alignment: center;
+    -fx-padding: 20 0 0 0;
+}
+
+#play-prompt-container {
+    -fx-alignment: center;
+    -fx-padding: 15 0 0 0;
+}
+
+#play-button {
+    -fx-text-fill: linear-gradient(from 20% 25% to 100% 100%, #983cc9, #1a54db);
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-radius: 6;
+
+    -fx-border-color: rgb(70, 70, 70);
+    -fx-border-radius: 6;
+
+    -fx-font-size: 14;
+
+    -fx-pref-height: 30px;
+    -fx-pref-width: 90px;
+}
+
+#play-button:hover {
+    -fx-background-color: linear-gradient(from 20% 25% to 100% 100%, #983cc9, #1a54db);
+    -fx-text-fill: #fff;
+}
+
+#team-toggle-button {
+    -fx-background-color: #fff;
+    -fx-border-color: #222222;
+
+    -fx-background-radius: 4 4 4 4;
+    -fx-border-radius: 4 4 4 4;
+
+    -fx-border-width: 1px;
+
+    -fx-pref-width: 15px;
+    -fx-pref-height: 15px;
+
+}
+
+#team-toggle-button:selected {
+    -fx-background-color: #000000;
+}
+
+#team-toggle-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.3);
+}
