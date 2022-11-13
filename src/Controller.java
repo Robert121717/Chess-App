@@ -5,7 +5,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -33,7 +32,7 @@ public class Controller implements Initializable {
     private ToggleButton appearanceButton;
     @FXML
     private GridPane chessBoard;
-    private CheckerBoard checkerBoard;
+    private CheckerBoard boardBackground;
     private String userColor = "white";
     private boolean interactiveBoard = false;
 
@@ -45,8 +44,8 @@ public class Controller implements Initializable {
         initializeAvatar();
         initializeStartMenu();
 
-        checkerBoard = new CheckerBoard();
-        chessBoard.add(checkerBoard, 0, 0);
+        boardBackground = new CheckerBoard();
+        chessBoard.add(boardBackground, 0, 0);
     }
 
     private void initializeStartMenu() {
@@ -112,10 +111,25 @@ public class Controller implements Initializable {
         newGameButton.setSelected(false);
         interactiveBoard = true;
 
-        if (userColor.equals("white"))  checkerBoard.switchTileColors();
-        else  checkerBoard.revertTileColors();
+        if (userColor.equals("white"))  boardBackground.switchTileColors();
+        else  boardBackground.revertTileColors();
 
-        game = new Game(chessBoard, checkerBoard.getTiles(), userColor);
+        game = new Game(chessBoard, boardBackground, userColor);
+        configureBoard();
+    }
+
+    private void configureBoard() {
+        HashSet<Piece> pieces = game.loadBoard();
+
+        for (Piece piece : pieces) {
+            StackPane node = piece.getNode();
+
+            if (piece.isPlayer()) {
+                node.setOnMouseClicked(e -> newTileSelection(piece.getTileOccupying()));
+            }
+            int[] coordinate = piece.getLocation();
+            chessBoard.add(node, coordinate[0], coordinate[1]);
+        }
     }
 
     private void initializeAppearanceMenu() {
@@ -139,75 +153,30 @@ public class Controller implements Initializable {
     }
 
     private void newTileSelection(Tile tile) {
-       if (!interactiveBoard || !tile.allowsInteraction()) return;
-       game.newMove(tile);
-       System.out.println("why hello there");
+       if (!interactiveBoard) return;
 
-       getNpcResponse();
+       // todo check for if tile was selected in  game class using round class
+       // already selected the rounds origin piece, now selected the rounds destination tile
+       if (tile.isDestinationTile()) {
+           // todo...
+           ;
+           npcResponse();
+
+       } else if (tile.isSelected()) {
+           tile.setSelected(false);
+           game.cancelRound(tile);
+
+       } else {
+           tile.setSelected(true);
+           game.newRound(tile);
+       }
     }
     
-    private void getNpcResponse() {
+    private void npcResponse() {
         // the long awaited hard part
     }
 
     protected void setStage(Stage stage) {
         this.stage = stage;
-    }
-
-    private class CheckerBoard extends Pane {
-
-        private final int tiles = 8;
-        private final Tile[][] checkerBoard = new Tile[tiles][tiles];
-        protected CheckerBoard() {
-
-            for (int x = 0; x < tiles; x++) {
-                for (int y = 0; y < tiles; y++) {
-                    createTile(x, y);
-                }
-            }
-        }
-
-        private void createTile(int x, int y) {
-            checkerBoard[x][y] = new Tile(x, y);
-
-            checkerBoard[x][y].setFill(getTileColor(x, y, false));
-            checkerBoard[x][y].setOnMouseClicked(e -> newTileSelection(checkerBoard[x][y]));
-
-            getChildren().add(checkerBoard[x][y]);
-        }
-
-        private Color getTileColor(int x, int y, boolean switchColor) {
-            boolean transparent;
-
-            if (switchColor)
-                transparent = (x % 2 == 0 && y % 2 == 1) || (x % 2 == 1 && y % 2 == 0);
-            else
-                transparent = (x % 2 == 0 && y % 2 == 0) || (x % 2 == 1 && y % 2 == 1);
-
-            Color darkGray = Color.web("#ededed", 0.9);
-            return transparent ? Color.TRANSPARENT : darkGray;
-        }
-
-        protected void switchTileColors() {
-
-            for (int x = 0; x < tiles; ++x) {
-                for (int y = 0; y < tiles; ++y) {
-                    checkerBoard[x][y].setFill(getTileColor(x, y, true));
-                }
-            }
-        }
-
-        protected void revertTileColors() {
-            for (int x = 0; x < tiles; ++x) {
-                for (int y = 0; y < tiles; ++y) {
-
-                    checkerBoard[x][y].setFill(getTileColor(x, y, false));
-                }
-            }
-        }
-
-        protected Tile[][] getTiles() {
-            return checkerBoard;
-        }
     }
 }

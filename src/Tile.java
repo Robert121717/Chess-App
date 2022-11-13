@@ -1,21 +1,17 @@
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 
 public class Tile extends Rectangle {
 
+    private StackPane node;
     private final int x;
     private final int y;
     private boolean containsPiece = false;
     private boolean selected = false;
-    private boolean interaction = false;
-    private boolean isDestinationTile = false;
+    private boolean destinationTile = false;
     private Piece piece;
 
     protected Tile(int x, int y) {
-//        super.setLayoutX(x * 55);
-//        super.setLayoutY(y * 55);
-//        super.setWidth(55);
-//        super.setHeight(55);
         super(x * 55, y * 55, 55, 55);
         this.x = x;
         this.y = y;
@@ -37,20 +33,12 @@ public class Tile extends Rectangle {
         return selected;
     }
 
-    protected void allowInteraction(boolean allowed) {
-        this.interaction = allowed;
-    }
-
-    protected boolean allowsInteraction() {
-        return interaction;
-    }
-
     protected void setDestinationTile(boolean isDestinationTile) {
-        this.isDestinationTile = isDestinationTile;
+        this.destinationTile = isDestinationTile;
     }
 
     protected boolean isDestinationTile() {
-        return isDestinationTile;
+        return destinationTile;
     }
 
     protected void setPiece(Piece piece) {
@@ -59,6 +47,14 @@ public class Tile extends Rectangle {
     }
 
     protected Piece getPiece() { return piece; }
+
+    protected void setNode(StackPane node) {
+        this.node = node;
+    }
+
+    protected StackPane getNode() {
+        return node;
+    }
 
     protected void containsPiece(boolean containsPiece) {
         this.containsPiece = containsPiece;

@@ -1,126 +1,134 @@
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Player {
 
-    private final HashMap<String, Piece> pieces = new HashMap<>();
-    private final GridPane chessBoard;
+    private final HashSet<Piece> pieces = new HashSet<>();
+    private final HashMap<int[], Piece> pieceLocations = new HashMap<>();
     private final Tile[][] tiles;
     private final String color;
     private final boolean npc;
     private final int backRow;
 
-    protected Player(GridPane chessBoard, Tile[][] tiles, String color, boolean npc) {
-        this.chessBoard = chessBoard;
+    protected Player(Tile[][] tiles, String color, boolean npc) {
         this.tiles = tiles;
-
         this.color = color;
         this.npc = npc;
 
         backRow = npc ? 0 : 7;
     }
 
-    protected void loadPieces() throws NullPointerException {
-        loadRooks();
-        loadKnights();
-        loadBishops();
-        loadRoyalty();
-        loadPawns();
+    protected HashSet<Piece> loadPieces() {
+        try {
+            loadRooks();
+            loadKnights();
+            loadBishops();
+            loadRoyalty();
+            loadPawns();
+
+        } catch (NullPointerException | IllegalArgumentException e) {
+            String source = npc ? "NPC" : "player";
+            System.out.println("Failed to load graphics for one or more " + source + " pieces. " +
+                    "Please review none are missing from the Images folder.");
+        }
+
+        return pieces;
     }
 
     private void loadRooks() {
         final int width = 24;
         final int height = 35;
-        final int row = npc ? 0 : 7;
 
-        Piece leftRook = new Piece(color, "rook", width, height);
-        Piece rightRook = new Piece(color, "rook", width, height);
+        for (int col = 0; col <= 7; col += 7) {
+            Piece rook = new Piece(color, "rook", width, height);
+            if (!npc) rook.setPlayer();
 
-        leftRook.setLocation(row + "0");
-        rightRook.setLocation(row + "7");
+            rook.setLocation(col, backRow);
+            rook.setTileOccupying(tiles[col][backRow]);
 
-        tiles[row][0].setPiece(leftRook);
-        tiles[row][7].setPiece(rightRook);
+            tiles[col][backRow].setPiece(rook);
+            tiles[col][backRow].setNode(rook.getNode());
 
-        chessBoard.add(leftRook.getNode(), 0, row);
-        chessBoard.add(rightRook.getNode(), 7, row);
-
-        pieces.put(leftRook.getLocation(), leftRook);
-        pieces.put(rightRook.getLocation(), rightRook);
+            pieces.add(rook);
+        }
     }
 
     private void loadKnights() {
         final int width = 40;
         final int height = 37;
 
-        Piece leftKnight = new Piece(color, "knight", width, height);
-        Piece rightKnight = new Piece(color, "knight", width, height);
+        for (int col = 1; col <= 6; col += 5) {
+            Piece knight = new Piece(color, "knight", width, height);
+            if (!npc) knight.setPlayer();
 
-        leftKnight.setKnight("left");
-        rightKnight.setKnight("right");
+            knight.setLocation(col, backRow);
+            knight.setTileOccupying(tiles[col][backRow]);
 
-        leftKnight.setLocation(backRow + "1");
-        rightKnight.setLocation(backRow + "6");
+            tiles[col][backRow].setPiece(knight);
+            tiles[col][backRow].setNode(knight.getNode());
 
-        tiles[backRow][1].setPiece(leftKnight);
-        tiles[backRow][6].setPiece(rightKnight);
-
-        chessBoard.add(leftKnight.getNode(), 1, backRow);
-        chessBoard.add(rightKnight.getNode(), 6, backRow);
-
-        pieces.put(leftKnight.getLocation(), leftKnight);
-        pieces.put(rightKnight.getLocation(), rightKnight);
+            pieces.add(knight);
+        }
     }
 
     private void loadBishops() {
         final int width = 38;
         final int height = 40;
 
-        Piece leftBishop = new Piece(color, "bishop", width, height);
-        Piece rightBishop = new Piece(color, "bishop", width, height);
+        for (int col = 2; col <= 5; col += 3) {
+            Piece bishop = new Piece(color, "bishop", width, height);
+            if (!npc) bishop.setPlayer();
 
-        leftBishop.setLocation(backRow + "2");
-        rightBishop.setLocation(backRow + "5");
+            bishop.setLocation(col, backRow);
+            bishop.setTileOccupying(tiles[col][backRow]);
 
-        tiles[backRow][2].setPiece(leftBishop);
-        tiles[backRow][5].setPiece(rightBishop);
+            tiles[col][backRow].setPiece(bishop);
+            tiles[col][backRow].setNode(bishop.getNode());
 
-        chessBoard.add(leftBishop.getNode(), 2, backRow);
-        chessBoard.add(rightBishop.getNode(), 5, backRow);
-
-        pieces.put(leftBishop.getLocation(), leftBishop);
-        pieces.put(leftBishop.getLocation(), leftBishop);
+            pieces.add(bishop);
+        }
     }
 
     private void loadRoyalty() {
 
         Piece queen = new Piece(color, "queen", 41, 40);
+        queen.setLocation(3, backRow);
+        queen.setTileOccupying(tiles[3][backRow]);
+
+        tiles[3][backRow].setPiece(queen);
+        tiles[3][backRow].setNode(queen.getNode());
+        pieces.add(queen);
+
         Piece king = new Piece(color, "king", 43, 40);
+        king.setLocation(4, backRow);
+        king.setTileOccupying(tiles[4][backRow]);
 
-        queen.setLocation(backRow + "3");
-        king.setLocation(backRow + "4");
+        tiles[4][backRow].setPiece(king);
+        tiles[4][backRow].setNode(king.getNode());
+        pieces.add(king);
 
-        tiles[backRow][3].setPiece(queen);
-        tiles[backRow][4].setPiece(king);
-
-        chessBoard.add(queen.getNode(), 3, backRow);
-        chessBoard.add(king.getNode(), 4, backRow);
-
-        pieces.put(queen.getLocation(), queen);
-        pieces.put(king.getLocation(), king);
+        if (!npc) {
+            queen.setPlayer();
+            king.setPlayer();
+        }
     }
 
     private void loadPawns() {
         final int frontRow = npc ? 1 : 6;
 
-        for (int i = 0; i < 8; ++i) {
+        for (int col = 0; col < 8; ++col) {
+            Piece pawn = new Piece(color, "pawn", 21, 20);
+            if (!npc) pawn.setPlayer();
 
-            Piece pawn = new Piece(color, "pawn", 21, 28);
-            pawn.setLocation(frontRow + String.valueOf(i));
+            pawn.setLocation(col, frontRow);
+            pawn.setTileOccupying(tiles[col][frontRow]);
 
-            tiles[i][frontRow].setPiece(pawn);
-            chessBoard.add(pawn.getNode(), i, frontRow);
-            pieces.put(pawn.getLocation(), pawn);
+            tiles[col][frontRow].setPiece(pawn);
+            tiles[col][frontRow].setNode(pawn.getNode());
+            pieces.add(pawn);
         }
     }
 }

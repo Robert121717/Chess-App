@@ -3,27 +3,28 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
-import java.util.HashSet;
-
 public class Piece {
 
     private final String color;
     private final String name;
-    private String location;
     private final double width;
     private final double height;
-    private String knightDirection = "";
+    private final StackPane node = new StackPane();
+    private int xLocation;
+    private int yLocation;
+    private Tile tileOccupying;
     private boolean active = true;
+    private boolean isPlayer;
     private int value;
 
 
     protected Piece(String color, String name, double width, double height) {
         this.color = color;
         this.name = name;
-
         this.width = width;
         this.height = height;
 
+        createNode();
         assignValue();
     }
 
@@ -31,33 +32,43 @@ public class Piece {
         return name;
     }
 
-    protected void setLocation(String location) {
-        this.location = location;
+    protected void setTileOccupying(Tile tileOccupying) {
+        this.tileOccupying = tileOccupying;
     }
 
-    protected String getLocation() {
-        return location;
+    protected Tile getTileOccupying() {
+        return tileOccupying;
     }
 
-    protected void setKnight(String direction) {
-        knightDirection = direction;
+    protected void setLocation(int x, int y) {
+        xLocation = x;
+        yLocation = y;
     }
 
-    protected StackPane getNode() throws NullPointerException {
-        String path = "Images/" + color + " " + name;
+    protected int[] getLocation() {
+        return new int[] {xLocation, yLocation};
+    }
 
-        if (!knightDirection.isEmpty()) {
-            path += " " + knightDirection;
+    private void createNode() {
+        try {
+            String path = "Images/" + color + " " + name;
+
+            Image graphic = new Image(path + ".png");
+            ImageView view = new ImageView(graphic);
+
+            view.setFitWidth(width);
+            view.setFitHeight(height);
+
+            node.getChildren().add(view);
+            node.setAlignment(Pos.CENTER);
+
+        } catch (NullPointerException | IllegalArgumentException e) {
+            System.out.println("A graphic for one of the pieces failed to load upon initialization." +
+                    " Please review the images file.");
         }
-        Image graphic = new Image(path + ".png");
-        ImageView view = new ImageView(graphic);
+    }
 
-        view.setFitWidth(width);
-        view.setFitHeight(height);
-
-        StackPane node = new StackPane(view);
-        node.setAlignment(Pos.CENTER);
-
+    protected StackPane getNode() {
         return node;
     }
 
@@ -67,6 +78,14 @@ public class Piece {
 
     protected boolean isActive() {
         return active;
+    }
+
+    protected void setPlayer() {
+        isPlayer = true;
+    }
+
+    protected boolean isPlayer() {
+        return isPlayer;
     }
 
     protected int getValue() {
