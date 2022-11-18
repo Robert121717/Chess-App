@@ -87,10 +87,10 @@ public class Game {
         int destX = destinationTile.getTileX(), destY = destinationTile.getTileY();
 
         chessBoard.getChildren().remove(selectedNode);
-        chessBoard.getChildren().remove(placeHolder);
+        chessBoard.getChildren().remove(destinationTile.getNode());
 
-        chessBoard.add(placeHolder, originX, originY);
         chessBoard.add(selectedNode, destX, destY);
+        chessBoard.add(placeHolder, originX, originY);
     }
 
     private void updateTileData(Tile destinationTile, Tile originTile,

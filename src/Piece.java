@@ -14,7 +14,7 @@ public class Piece {
     private int xLocation;
     private int yLocation;
     private boolean active = true;
-    private boolean isPlayer;
+    private boolean isPlayer = false;
     private Tile tileOccupying;
     private int value;
 

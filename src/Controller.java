@@ -123,10 +123,8 @@ public class Controller implements Initializable {
 
         for (Piece piece : pieces) {
             StackPane node = piece.getNode();
+            node.setOnMouseClicked(e -> newTileSelection(piece.getTileOccupying()));
 
-            if (piece.isPlayer()) {
-                node.setOnMouseClicked(e -> newTileSelection(piece.getTileOccupying()));
-            }
             int[] coordinate = piece.getLocation();
             chessBoard.add(node, coordinate[0], coordinate[1]);
         }
@@ -178,7 +176,7 @@ public class Controller implements Initializable {
     private void newTileSelection(Tile tile) {
        if (!interactiveBoard) return;
 
-       if (tile.isDestinationTile()) {
+       if (tile.isDestinationTile()) { // todo swapping kind & rook
            Tile tilePlaceHolder = game.finishRound(tile);
 
            tilePlaceHolder.getNode().setOnMouseClicked(e ->
@@ -189,7 +187,7 @@ public class Controller implements Initializable {
        } else if (tile.isSelected()) {
            game.cancelRound();
 
-       } else if (tile.isOccupied()) {
+       } else if (tile.isOccupied() && tile.getPiece().isPlayer()) {
            game.newRound(tile);
        }
     }
