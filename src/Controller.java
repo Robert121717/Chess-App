@@ -1,4 +1,3 @@
-
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
@@ -119,7 +118,8 @@ public class Controller implements Initializable {
     }
 
     private void configureBoard() {
-        HashSet<Piece> pieces = game.loadBoard();
+        HashSet<Piece> pieces = game.loadPieces();
+        fillUnoccupiedTiles();
 
         for (Piece piece : pieces) {
             StackPane node = piece.getNode();
@@ -130,6 +130,29 @@ public class Controller implements Initializable {
             int[] coordinate = piece.getLocation();
             chessBoard.add(node, coordinate[0], coordinate[1]);
         }
+    }
+
+
+    private void fillUnoccupiedTiles() {
+        Tile[][] tiles = boardBackground.getTiles();
+
+        for (int col = 0; col <= 7; ++col) {
+            for (int row = 2; row <= 5; ++row) {
+
+                StackPane filler = getFillerNode(col, row);
+                tiles[col][row].setNode(filler);
+                chessBoard.add(filler, col, row);
+            }
+        }
+    }
+
+    private StackPane getFillerNode(int x, int y) {
+        StackPane filler = new StackPane();
+
+        Tile[][] tiles = boardBackground.getTiles();
+        filler.setOnMouseClicked(e -> newTileSelection(tiles[x][y]));
+
+        return filler;
     }
 
     private void initializeAppearanceMenu() {
@@ -155,19 +178,18 @@ public class Controller implements Initializable {
     private void newTileSelection(Tile tile) {
        if (!interactiveBoard) return;
 
-       // todo check for if tile was selected in  game class using round class
-       // already selected the rounds origin piece, now selected the rounds destination tile
        if (tile.isDestinationTile()) {
-           // todo...
-           ;
+           Tile tilePlaceHolder = game.finishRound(tile);
+
+           tilePlaceHolder.getNode().setOnMouseClicked(e ->
+                   newTileSelection(tilePlaceHolder));
+
            npcResponse();
 
        } else if (tile.isSelected()) {
-           tile.setSelected(false);
-           game.cancelRound(tile);
+           game.cancelRound();
 
-       } else {
-           tile.setSelected(true);
+       } else if (tile.isOccupied()) {
            game.newRound(tile);
        }
     }

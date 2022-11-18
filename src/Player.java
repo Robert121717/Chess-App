@@ -1,13 +1,8 @@
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class Player {
 
     private final HashSet<Piece> pieces = new HashSet<>();
-    private final HashMap<int[], Piece> pieceLocations = new HashMap<>();
     private final Tile[][] tiles;
     private final String color;
     private final boolean npc;
@@ -119,7 +114,7 @@ public class Player {
     private void loadPawns() {
         final int frontRow = npc ? 1 : 6;
 
-        for (int col = 0; col < 8; ++col) {
+        for (int col = 0; col <= 7; ++col) {
             Piece pawn = new Piece(color, "pawn", 21, 20);
             if (!npc) pawn.setPlayer();
 
@@ -128,6 +123,7 @@ public class Player {
 
             tiles[col][frontRow].setPiece(pawn);
             tiles[col][frontRow].setNode(pawn.getNode());
+
             pieces.add(pawn);
         }
     }
