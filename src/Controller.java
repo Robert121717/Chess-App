@@ -11,6 +11,7 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -34,9 +35,7 @@ public class Controller implements Initializable {
     private CheckerBoard boardBackground;
     private String userColor = "white";
     private boolean interactiveBoard = false;
-
     private Game game;
-
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -97,9 +96,8 @@ public class Controller implements Initializable {
         ToggleButton teamSelector = new ToggleButton();
         teamSelector.setId("team-toggle-button");
 
-        teamSelector.selectedProperty().addListener((observable, wasSelected, isSelected) -> {
-            userColor = isSelected ? "black" : "white";
-        });
+        teamSelector.selectedProperty().addListener((observable, wasSelected, isSelected) ->
+                userColor = isSelected ? "black" : "white");
         container.getChildren().addAll(teamPrompt, teamSelector);
 
         return container;
@@ -113,12 +111,13 @@ public class Controller implements Initializable {
         if (userColor.equals("white"))  boardBackground.switchTileColors();
         else  boardBackground.revertTileColors();
 
-        game = new Game(chessBoard, boardBackground, userColor);
+        boardBackground = new CheckerBoard();
+        game = new Game(chessBoard, boardBackground.getTiles(), userColor);
         configureBoard();
     }
 
     private void configureBoard() {
-        HashSet<Piece> pieces = game.loadPieces();
+        HashSet<Piece> pieces = game.loadPieces(boardBackground);
         fillUnoccupiedTiles();
 
         for (Piece piece : pieces) {
@@ -129,7 +128,6 @@ public class Controller implements Initializable {
             chessBoard.add(node, coordinate[0], coordinate[1]);
         }
     }
-
 
     private void fillUnoccupiedTiles() {
         Tile[][] tiles = boardBackground.getTiles();

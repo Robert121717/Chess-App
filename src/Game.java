@@ -1,11 +1,9 @@
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import java.util.HashSet;
 
 public class Game {
 
     private final GridPane chessBoard;
-    private final CheckerBoard boardBackground;
     private final Tile[][] tiles;
     private Player npc;
     private Player user;
@@ -14,21 +12,19 @@ public class Game {
 
     private Round currentRound;
 
-    protected Game(GridPane chessBoard, CheckerBoard boardBackground, String userColor) {
+    protected Game(GridPane chessBoard, Tile[][] tiles, String userColor) {
+
         this.chessBoard = chessBoard;
-
-        this.boardBackground = boardBackground;
-        tiles = boardBackground.getTiles();
-
+        this.tiles = tiles;
         this.userColor = userColor;
         npcColor = userColor.equals("white") ? "black" : "white";
     }
 
-    protected HashSet<Piece> loadPieces() {
-
+    protected HashSet<Piece> loadPieces(CheckerBoard boardBackground) {
         chessBoard.getChildren().clear();
         chessBoard.add(boardBackground, 0, 0);
 
+        currentRound = null;
         HashSet<Piece> pieces = new HashSet<>();
 
         npc = new Player(tiles, npcColor, true);

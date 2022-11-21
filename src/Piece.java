@@ -125,7 +125,7 @@ public class Piece {
                 case "knight" -> getKnightPaths();
                 case "rook" -> getRookPaths();
                 default -> getPawnPaths();
-            };
+            }
             return possiblePaths;
         }
 
