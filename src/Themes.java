@@ -5,17 +5,14 @@ public class Themes {
 
     private static final LinearGradient DEFAULT =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #983cc9, #1a54db)");
-
     private static final LinearGradient GRAY =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #bdc3c7, #2c3e50)");
     private static final LinearGradient SKY =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #ffd89b, #19547b)");
-
     private static final LinearGradient DARK_PURPLE =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #2193b0, #6dd5ed)");
     private static final LinearGradient PURPLE =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #42275a, #734b6d)");
-
     private static final LinearGradient NAVY =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #141e30, #243b55)");
     private static final LinearGradient DARK_BLUE =
@@ -24,7 +21,6 @@ public class Themes {
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #2193b0, #6dd5ed)");
     private static final LinearGradient TEAL =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #06beb6, #48b1bf)");
-
     private static final LinearGradient RED =
             LinearGradient.valueOf("linear-gradient(from 20% 25% to 100% 100%, #eb3349, #f45c43)");
     private static final LinearGradient ORANGE =
@@ -54,4 +50,6 @@ public class Themes {
 
         return gradients;
     }
+
+
 }

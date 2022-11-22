@@ -42,7 +42,10 @@ public class Game {
         }
         currentRound = new Round(selectedTile);
         currentRound.createPathOptions();
-        currentRound.selectTiles(true);
+
+        if (currentRound.hasPaths())
+            currentRound.selectTiles(true);
+        else currentRound.endRound();
     }
 
     protected void cancelRound() {
@@ -164,6 +167,10 @@ public class Game {
                 tile.setDestinationTile(selected);
                 tile.getNode().setStyle(style);
             }
+        }
+
+        protected boolean hasPaths() {
+            return !destinationTiles.isEmpty();
         }
     }
 }
