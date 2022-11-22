@@ -1,17 +1,18 @@
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -21,7 +22,14 @@ public class Controller implements Initializable {
     private Stage stage;
     private PopupControl newGamePopup;
     private PopupControl appearancePopup;
+    private ToggleButton themeToggleButton;
+    private ToggleButton boardToggleButton;
+    private String theme;
 
+    @FXML
+    private VBox backgroundVBox;
+    @FXML
+    private HBox navBar;
     @FXML
     private Circle avatar;
     @FXML
@@ -40,32 +48,28 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeAvatar();
-        initializeStartMenu();
+        initializeGameMenu();
+        initializeAppearanceMenu();
 
         boardBackground = new CheckerBoard();
         chessBoard.add(boardBackground, 0, 0);
     }
 
-    private void initializeStartMenu() {
+    private void initializeGameMenu() {
         newGamePopup = new PopupControl();
         newGamePopup.setId("new-game-popup");
 
         addGameOptions();
 
         newGameButton.selectedProperty().addListener((observable, wasSelected, isSelected) -> {
-            if (isSelected) showPopup(newGamePopup, newGameButton);
-            else newGamePopup.hide();
+            if (appearancePopup.isShowing()) appearancePopup.hide();
+
+            if (isSelected) {
+                appearanceButton.setSelected(false);
+                showPopup(newGamePopup, newGameButton, PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
+
+            } else newGamePopup.hide();
         });
-    }
-
-    private void showPopup(PopupControl popup, Control ownerNode) {
-
-        double layoutX = ownerNode.getWidth() / 2;
-        double layoutY = ownerNode.getHeight();
-        Point2D anchorPoint = ownerNode.localToScreen(layoutX, layoutY);
-
-        popup.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
-        popup.show(ownerNode, anchorPoint.getX(), anchorPoint.getY());
     }
 
     private void addGameOptions() {
@@ -84,6 +88,121 @@ public class Controller implements Initializable {
 
         root.getChildren().addAll(teamPrompt, playPrompt);
         newGamePopup.getScene().setRoot(root);
+    }
+
+    private void initializeAppearanceMenu() {
+        appearancePopup = new PopupControl();
+        appearancePopup.setId("appearance-popup");
+
+        addAppearanceOptions();
+
+        appearanceButton.selectedProperty().addListener((observable, wasSelected, isSelected) -> {
+            if (newGamePopup.isShowing()) newGamePopup.hide();
+
+            if (isSelected) {
+                newGameButton.setSelected(false);
+                showPopup(appearancePopup, appearanceButton, PopupWindow.AnchorLocation.WINDOW_TOP_RIGHT);
+
+            } else appearancePopup.hide();
+        });
+    }
+
+    private void addAppearanceOptions() {
+        VBox root = new VBox();
+        root.setId("appearance-root-vbox");
+
+        HBox navBar = createAppearanceNavBar();
+        Separator line = new Separator(Orientation.HORIZONTAL);
+
+        HBox themes = createColorThemes();
+//        HBox boards = createBoardThemes();
+        HBox boards = new HBox();
+
+        themeToggleButton.setOnAction(e -> {
+            themeToggleButton.setSelected(true);
+            boardToggleButton.setSelected(false);
+            root.getChildren().remove(2);
+            root.getChildren().add(themes);
+        });
+
+        boardToggleButton.setOnAction(e -> {
+            boardToggleButton.setSelected(true);
+            themeToggleButton.setSelected(false);
+            root.getChildren().remove(2);
+            root.getChildren().add(boards);
+        });
+
+        root.getChildren().addAll(navBar, line, themes);
+        appearancePopup.getScene().setRoot(root);
+    }
+
+    private HBox createAppearanceNavBar() {
+        HBox navBar = new HBox(25);
+        navBar.setId("appearance-nav-bar");
+
+        themeToggleButton = new ToggleButton("Themes");
+        themeToggleButton.setSelected(true);
+        boardToggleButton = new ToggleButton("Boards");
+
+        navBar.getChildren().addAll(themeToggleButton, boardToggleButton);
+        return navBar;
+    }
+
+    private HBox createColorThemes() {
+        HBox gradientVBox = new HBox();
+        gradientVBox.setId("theme-container");
+
+        GridPane gradients = getColorGrid();
+        gradients.setId("gradient-grid");
+
+        gradientVBox.getChildren().addAll(gradients);
+        return gradientVBox;
+    }
+
+    private GridPane getColorGrid() {
+
+        Rectangle[][] colors = Themes.getGradients();
+        GridPane display = new GridPane();
+
+        for (int y = 0; y < colors.length; ++y) {
+            Rectangle[] row = colors[y];
+
+            for (int x = 0; x < row.length; ++x) {
+                Rectangle rect = row[x];
+                rect.setArcHeight(10);
+                rect.setArcWidth(10);
+
+                rect.setOnMouseClicked(e -> setTheme(rect));
+                display.add(rect, x, y);
+            }
+        }
+        display.setHgap(15);
+        display.setVgap(10);
+
+        return display;
+    }
+
+    private void setTheme(Rectangle rect) {
+        String color = rect.getFill().toString();
+        color = color.replace("0x", "#");
+
+        navBar.setStyle("-fx-background-color: " + color + ";");
+    }
+
+    private HBox createBoardThemes() {
+        return null;
+    }
+
+    private void showPopup(PopupControl popup, Control ownerNode, PopupWindow.AnchorLocation anchorLoc) {
+
+        double layoutX = ownerNode.getWidth();
+        if (anchorLoc.equals(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT)) layoutX /= 2;
+        else layoutX -= layoutX / 5;
+
+        double layoutY = ownerNode.getHeight();
+        Point2D anchorPoint = ownerNode.localToScreen(layoutX, layoutY);
+        popup.setAnchorLocation(anchorLoc);
+        popup.show(ownerNode, anchorPoint.getX(), anchorPoint.getY());
     }
 
     private HBox getPlayerTeamPrompt() {
@@ -135,24 +254,20 @@ public class Controller implements Initializable {
         for (int col = 0; col <= 7; ++col) {
             for (int row = 2; row <= 5; ++row) {
 
-                StackPane filler = getFillerNode(col, row);
-                tiles[col][row].setNode(filler);
-                chessBoard.add(filler, col, row);
+                StackPane placeHolder = createPlaceHolder(col, row);
+                tiles[col][row].setNode(placeHolder);
+                chessBoard.add(placeHolder, col, row);
             }
         }
     }
 
-    private StackPane getFillerNode(int x, int y) {
+    private StackPane createPlaceHolder(int x, int y) {
         StackPane filler = new StackPane();
 
         Tile[][] tiles = boardBackground.getTiles();
         filler.setOnMouseClicked(e -> newTileSelection(tiles[x][y]));
 
         return filler;
-    }
-
-    private void initializeAppearanceMenu() {
-
     }
 
     private void initializeAvatar() {
@@ -174,7 +289,13 @@ public class Controller implements Initializable {
     private void newTileSelection(Tile tile) {
        if (!interactiveBoard) return;
 
-       if (tile.isDestinationTile()) { // todo swapping kind & rook
+       if (appearancePopup.isShowing()) {
+           appearancePopup.hide(); appearanceButton.setSelected(false);
+       } else if (newGamePopup.isShowing()) {
+           newGamePopup.hide(); newGameButton.setSelected(false);
+       }
+
+       if (tile.isDestinationTile()) { // todo swapping king & rook
            Tile tilePlaceHolder = game.finishRound(tile);
 
            tilePlaceHolder.getNode().setOnMouseClicked(e ->

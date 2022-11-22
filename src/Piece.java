@@ -137,7 +137,7 @@ public class Piece {
                     int xCoord = x + originX;
                     int yCoord = y + originY;
 
-                    boolean newTile = x != originX && y != originY;
+                    boolean newTile = x != 0 && y != 0;
                     boolean tileExists = 0 <= xCoord && xCoord <= 7 && 0 <= yCoord && yCoord <= 7;
 
                     if (newTile && tileExists) {
@@ -180,7 +180,7 @@ public class Piece {
                     int xCoord = x + originX;
                     int yCoord = y + originY;
 
-                    boolean newTile = xCoord != originX && yCoord != originY;
+                    boolean newTile = x != 0 && y != 0;
                     boolean tileExists = 0 <= xCoord && xCoord <= 7 && 0 <= yCoord && yCoord <= 7;
                     boolean allowedMove = x != y && (Math.abs(x) == 2 && Math.abs(y) == 1) ||
                             (Math.abs(x) == 1 && Math.abs(y) == 2);
