@@ -127,4 +127,16 @@ public class Player {
             pieces.add(pawn);
         }
     }
+
+    protected HashSet<Piece> getPieces() {
+        return pieces;
+    }
+
+//    protected HashSet<Move> getPossibleMoves() {
+//
+//        for (Piece piece : pieces) {
+//            Move move = new Move(piece.getTileOccupying(), tiles);
+//
+//        }
+//    }
 }

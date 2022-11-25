@@ -95,8 +95,8 @@
 #appearance-root-vbox {
     -fx-pref-width: 290px;
     -fx-min-width: 290px;
-    -fx-pref-height: 170px;
-    -fx-min-height: 170px;
+    -fx-pref-height: 190px;
+    -fx-min-height: 190px;
 
     -fx-alignment: top-center;
     -fx-padding: 0 20 0 20;
@@ -130,8 +130,35 @@
     -fx-background-color: rgba(0, 0, 0, 0.3);
 }
 
-#theme-container {
-    -fx-padding: 20 0 0 0;
+#gradient-options-container {
     -fx-alignment: center;
+    -fx-padding: 10 0 0 0;
+}
+
+#board-theme-container {
+    -fx-alignment: center;
+    -fx-padding: 15 10 15 10;
+}
+
+.scroll-pane {
+    -fx-pref-height: 146;
+    -fx-fit-to-height: true;
+
+    -fx-pannable: true;
+    -fx-hbar-policy: always;
+    -fx-vbar-policy: never;
+
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .decrement-button .decrement-arrow, .scroll-pane . increment-button .increment-arrow {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height: 15px;
 }
 

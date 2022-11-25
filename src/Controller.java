@@ -2,10 +2,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -13,9 +17,8 @@ import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
+import static javafx.scene.effect.BlurType.GAUSSIAN;
 
 public class Controller implements Initializable {
 
@@ -24,7 +27,11 @@ public class Controller implements Initializable {
     private PopupControl appearancePopup;
     private ToggleButton themeToggleButton;
     private ToggleButton boardToggleButton;
-    private String theme;
+    private Paint tileFill1;
+    private Paint tileFill2;
+    private int scrollPos = 0;
+    private final int minScrollPos = 0;
+    private final int maxScrollPos = 200;
 
     @FXML
     private VBox backgroundVBox;
@@ -51,7 +58,10 @@ public class Controller implements Initializable {
         initializeGameMenu();
         initializeAppearanceMenu();
 
-        boardBackground = new CheckerBoard();
+        tileFill1 = Color.TRANSPARENT;
+        tileFill2 = Color.web("#ededed", 0.9);
+
+        boardBackground = new CheckerBoard(tileFill1, tileFill2, 55);
         chessBoard.add(boardBackground, 0, 0);
     }
 
@@ -115,8 +125,7 @@ public class Controller implements Initializable {
         Separator line = new Separator(Orientation.HORIZONTAL);
 
         HBox themes = createColorThemes();
-//        HBox boards = createBoardThemes();
-        HBox boards = new HBox();
+        ScrollPane boards = createBoardThemes();
 
         themeToggleButton.setOnAction(e -> {
             themeToggleButton.setSelected(true);
@@ -150,12 +159,11 @@ public class Controller implements Initializable {
 
     private HBox createColorThemes() {
         HBox gradientVBox = new HBox();
-        gradientVBox.setId("theme-container");
+        gradientVBox.setId("gradient-options-container");
 
         GridPane gradients = getColorGrid();
-        gradients.setId("gradient-grid");
-
         gradientVBox.getChildren().addAll(gradients);
+
         return gradientVBox;
     }
 
@@ -189,8 +197,47 @@ public class Controller implements Initializable {
         navBar.setStyle("-fx-background-color: " + color + ";");
     }
 
-    private HBox createBoardThemes() {
-        return null;
+    private ScrollPane createBoardThemes() {
+        final int delta = 50;
+
+        ScrollPane root = new ScrollPane();
+        root.setHmin(minScrollPos);
+        root.setHmax(maxScrollPos);
+
+        HBox container = getBoards();
+        container.setOnScroll(e -> {
+            if (e.getDeltaY() < 0 || e.getDeltaX() < 0)
+                root.setHvalue(scrollPos == minScrollPos ? minScrollPos : (scrollPos -= delta));
+            else
+                root.setHvalue(scrollPos + delta == maxScrollPos ? maxScrollPos : (scrollPos += delta));
+        });
+
+        root.setContent(container);
+        return root;
+    }
+
+    private HBox getBoards() {
+        HBox container = new HBox(30);
+        container.setId("board-theme-container");
+
+        for (CheckerBoard board : Themes.getBoards()) {
+            container.getChildren().add(board);
+            board.setOnMouseClicked(e -> setBoardTheme(container, board));
+        }
+        return container;
+    }
+
+    private void setBoardTheme(HBox boardContainer, CheckerBoard boardSelected) {
+
+        for (Node board : boardContainer.getChildren()) {
+            board.setEffect(new InnerShadow(GAUSSIAN, Color.WHITE, 10, 0.5, 0, 0));
+        }
+        // todo make this better
+        boardSelected.setEffect(
+                new InnerShadow(GAUSSIAN, Color.web("#3aafdc", 0.88), 50, 0.1, 0, 0));
+        Paint[] theme = boardSelected.getTheme();
+        tileFill1 = theme[0];
+        tileFill2 = theme[1];
     }
 
     private void showPopup(PopupControl popup, Control ownerNode, PopupWindow.AnchorLocation anchorLoc) {
@@ -230,7 +277,7 @@ public class Controller implements Initializable {
         if (userColor.equals("white"))  boardBackground.switchTileColors();
         else  boardBackground.revertTileColors();
 
-        boardBackground = new CheckerBoard();
+        boardBackground = new CheckerBoard(tileFill1, tileFill2, 55);
         game = new Game(chessBoard, boardBackground.getTiles(), userColor);
         configureBoard();
     }
@@ -296,7 +343,7 @@ public class Controller implements Initializable {
        }
 
        if (tile.isDestinationTile()) { // todo swapping king & rook
-           Tile tilePlaceHolder = game.finishRound(tile);
+           Tile tilePlaceHolder = game.finishMove(tile);
 
            tilePlaceHolder.getNode().setOnMouseClicked(e ->
                    newTileSelection(tilePlaceHolder));
@@ -304,10 +351,10 @@ public class Controller implements Initializable {
            npcResponse();
 
        } else if (tile.isSelected()) {
-           game.cancelRound();
+           game.cancelMove();
 
        } else if (tile.isOccupied() && tile.getPiece().isPlayer()) {
-           game.newRound(tile);
+           game.newMove(tile);
        }
     }
     

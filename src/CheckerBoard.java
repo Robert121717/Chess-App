@@ -1,15 +1,21 @@
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 public class CheckerBoard extends Pane {
 
     private final int tiles = 8;
     private final Tile[][] checkerBoard = new Tile[tiles][tiles];
-    protected CheckerBoard() {
+
+    private final Paint v1;
+    private final Paint v2;
+
+    protected CheckerBoard(Paint v1, Paint v2, int scale) {
+        this.v1 = v1;
+        this.v2 = v2;
 
         for (int x = 0; x < tiles; x++) {
             for (int y = 0; y < tiles; y++) {
-                checkerBoard[x][y] = new Tile(x, y);
+                checkerBoard[x][y] = new Tile(x, y, scale);
 
                 checkerBoard[x][y].setFill(getTileColor(x, y, false));
                 getChildren().add(checkerBoard[x][y]);
@@ -17,16 +23,15 @@ public class CheckerBoard extends Pane {
         }
     }
 
-    private Color getTileColor(int x, int y, boolean switchColor) {
-        boolean transparent;
+    private Paint getTileColor(int x, int y, boolean alternateColors) {
+        boolean brighterFill;
 
-        if (switchColor)
-            transparent = (x % 2 == 0 && y % 2 == 1) || (x % 2 == 1 && y % 2 == 0);
+        if (alternateColors)
+            brighterFill = (x % 2 == 0 && y % 2 == 1) || (x % 2 == 1 && y % 2 == 0);
         else
-            transparent = (x % 2 == 0 && y % 2 == 0) || (x % 2 == 1 && y % 2 == 1);
+            brighterFill = (x % 2 == 0 && y % 2 == 0) || (x % 2 == 1 && y % 2 == 1);
 
-        Color darkGray = Color.web("#ededed", 0.9);
-        return transparent ? Color.TRANSPARENT : darkGray;
+        return brighterFill ? v1 : v2;
     }
 
     protected void switchTileColors() {
@@ -49,5 +54,9 @@ public class CheckerBoard extends Pane {
 
     protected Tile[][] getTiles() {
         return checkerBoard;
+    }
+
+    protected Paint[] getTheme() {
+        return new Paint[] {v1, v2};
     }
 }

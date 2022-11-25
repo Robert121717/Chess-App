@@ -10,7 +10,7 @@ public class Game {
     private final String userColor;
     private final String npcColor;
 
-    private Round currentRound;
+    private Move currentMove;
 
     protected Game(GridPane chessBoard, Tile[][] tiles, String userColor) {
 
@@ -24,7 +24,7 @@ public class Game {
         chessBoard.getChildren().clear();
         chessBoard.add(boardBackground, 0, 0);
 
-        currentRound = null;
+        currentMove = null;
         HashSet<Piece> pieces = new HashSet<>();
 
         npc = new Player(tiles, npcColor, true);
@@ -36,33 +36,32 @@ public class Game {
         return pieces;
     }
 
-    protected void newRound(Tile selectedTile) {
-        if (currentRound != null && currentRound.isInProgress()) {
-            currentRound.selectTiles(false);
+    protected void newMove(Tile selectedTile) {
+        if (currentMove != null && currentMove.isInProgress()) {
+            currentMove.selectPaths(false);
         }
-        currentRound = new Round(selectedTile);
-        currentRound.createPathOptions();
+        currentMove = new Move(selectedTile, tiles);
+        currentMove.addPathsForPiece(selectedTile.getPiece());
 
-        if (currentRound.hasPaths())
-            currentRound.selectTiles(true);
-        else currentRound.endRound();
+        if (currentMove.hasPaths()) currentMove.selectPaths(true);
+        else currentMove.endMove();
     }
 
-    protected void cancelRound() {
-        currentRound.endRound();
+    protected void cancelMove() {
+        currentMove.endMove();
     }
 
-    protected Tile finishRound(Tile destinationTile) {
+    protected Tile finishMove(Tile destinationTile) {
 
         StackPane placeHolder = getTilePlaceHolder(destinationTile);
 
-        Tile originTile = currentRound.getOriginTile();
+        Tile originTile = currentMove.getOriginTile();
         StackPane selectedNode = originTile.getNode();
 
         updateChessBoard(destinationTile, originTile, selectedNode, placeHolder);
         updateTileData(destinationTile, originTile, selectedNode, placeHolder);
 
-        currentRound.endRound();
+        currentMove.endMove();
         return originTile;
     }
 
@@ -97,80 +96,12 @@ public class Game {
 
         Piece movedPiece = originTile.getPiece();
         movedPiece.setTileOccupying(destinationTile);
+        movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
 
         destinationTile.setPiece(movedPiece);
         destinationTile.setNode(selectedNode);
 
         originTile.setPiece(null);
         originTile.setNode(placeHolder);
-    }
-
-    private class Round {
-
-        private final HashSet<Tile> destinationTiles = new HashSet<>();
-        private final Tile originTile;
-        private boolean inProgress;
-
-        protected Round(Tile originTile) {
-            this.originTile = originTile;
-
-            originTile.setSelected(true);
-            inProgress = true;
-        }
-
-        protected Tile getOriginTile() {
-            return originTile;
-        }
-
-        protected boolean isInProgress() {
-            return inProgress;
-        }
-
-        protected void endRound() {
-            inProgress = false;
-            selectTiles(false);
-        }
-
-        protected void createPathOptions() {
-
-            int originX = originTile.getTileX();
-            int originY = originTile.getTileY();
-
-            Piece.Path path = new Piece.Path(tiles, originX, originY);
-            toTileSet(path.getPathOptions(originTile.getPiece().getName()));
-        }
-
-        private void toTileSet(HashSet<int[]> possibleMoves) {
-
-            for (int[] coordinate : possibleMoves) {
-                int x = coordinate[0];
-                int y = coordinate[1];
-
-                destinationTiles.add(tiles[x][y]);
-            }
-        }
-
-        protected void selectTiles(boolean selected) {
-
-            String transparent = "-fx-background-color: transparent;";
-            String highlight = "-fx-background-color: " +
-                    "radial-gradient(focus-distance 0% , center 50% 50% , radius 100% , " +
-                    "rgba(0, 0, 0, 0), " +
-                    "rgba(58, 175, 220, 0.88));";
-
-            String style = selected ? highlight : transparent;
-
-            originTile.getNode().setStyle(style);
-            if (!selected) originTile.setSelected(false);
-
-            for (Tile tile : destinationTiles) {
-                tile.setDestinationTile(selected);
-                tile.getNode().setStyle(style);
-            }
-        }
-
-        protected boolean hasPaths() {
-            return !destinationTiles.isEmpty();
-        }
     }
 }

@@ -11,8 +11,9 @@ public class Tile extends Rectangle {
     private boolean selected = false;
     private boolean destinationTile = false;
 
-    protected Tile(int x, int y) {
-        super(x * 55, y * 55, 55, 55);
+    protected Tile(int x, int y, int tileSize) {
+
+        super(x * tileSize, y * tileSize, tileSize, tileSize);
         this.x = x;
         this.y = y;
     }
