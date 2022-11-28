@@ -236,8 +236,8 @@ public class Controller implements Initializable {
         boardSelected.setEffect(
                 new InnerShadow(GAUSSIAN, Color.web("#3aafdc", 0.88), 50, 0.1, 0, 0));
         Paint[] theme = boardSelected.getTheme();
-        tileFill1 = theme[0];
-        tileFill2 = theme[1];
+        tileFill1 = theme[1];
+        tileFill2 = theme[0];
     }
 
     private void showPopup(PopupControl popup, Control ownerNode, PopupWindow.AnchorLocation anchorLoc) {
@@ -274,10 +274,14 @@ public class Controller implements Initializable {
         newGameButton.setSelected(false);
         interactiveBoard = true;
 
-        if (userColor.equals("white"))  boardBackground.switchTileColors();
-        else  boardBackground.revertTileColors();
-
         boardBackground = new CheckerBoard(tileFill1, tileFill2, 55);
+
+        if (userColor.equals("white") && !boardBackground.isHasDefaultTileScheme())
+            boardBackground.switchTileColors(false);
+
+        else if (userColor.equals("black") && boardBackground.isHasDefaultTileScheme())
+            boardBackground.switchTileColors(true);
+
         game = new Game(chessBoard, boardBackground.getTiles(), userColor);
         configureBoard();
     }
@@ -335,18 +339,14 @@ public class Controller implements Initializable {
 
     private void newTileSelection(Tile tile) {
        if (!interactiveBoard) return;
+       closePopups();
 
-       if (appearancePopup.isShowing()) {
-           appearancePopup.hide(); appearanceButton.setSelected(false);
-       } else if (newGamePopup.isShowing()) {
-           newGamePopup.hide(); newGameButton.setSelected(false);
-       }
-
-       if (tile.isDestinationTile()) { // todo swapping king & rook
+       if (tile.isDestinationTile()) {
            Tile tilePlaceHolder = game.finishMove(tile);
 
            tilePlaceHolder.getNode().setOnMouseClicked(e ->
                    newTileSelection(tilePlaceHolder));
+           System.out.println("Tile: " + tilePlaceHolder.hashCode() + ", Node: " + tilePlaceHolder.getNode().hashCode());
 
            npcResponse();
 
@@ -355,7 +355,19 @@ public class Controller implements Initializable {
 
        } else if (tile.isOccupied() && tile.getPiece().isPlayer()) {
            game.newMove(tile);
-       }
+
+       } else
+           System.out.println("ELSE | Tile: " + tile.hashCode() + ", Node: " + tile.getNode().hashCode());
+    }
+
+    private void closePopups() {
+
+        if (appearancePopup.isShowing()) {
+            appearancePopup.hide(); appearanceButton.setSelected(false);
+
+        } else if (newGamePopup.isShowing()) {
+            newGamePopup.hide(); newGameButton.setSelected(false);
+        }
     }
     
     private void npcResponse() {

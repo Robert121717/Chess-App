@@ -2,7 +2,6 @@ import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import java.util.HashSet;
 
 public class Piece {
 
@@ -29,8 +28,16 @@ public class Piece {
         assignValue();
     }
 
+    protected String getColor() {
+        return color;
+    }
+
     protected String getName() {
         return name;
+    }
+
+    protected double[] getDimensions() {
+        return new double[] {width, height};
     }
 
     protected void setTileOccupying(Tile tileOccupying) {

@@ -5,6 +5,7 @@ public class CheckerBoard extends Pane {
 
     private final int tiles = 8;
     private final Tile[][] checkerBoard = new Tile[tiles][tiles];
+    private boolean hasDefaultTileScheme = true;
 
     private final Paint v1;
     private final Paint v2;
@@ -31,23 +32,15 @@ public class CheckerBoard extends Pane {
         else
             brighterFill = (x % 2 == 0 && y % 2 == 0) || (x % 2 == 1 && y % 2 == 1);
 
-        return brighterFill ? v1 : v2;
+        return brighterFill ? v2 : v1;
     }
 
-    protected void switchTileColors() {
+    protected void switchTileColors(boolean setToBlack) {
+        this.hasDefaultTileScheme = setToBlack;
 
         for (int x = 0; x < tiles; ++x) {
             for (int y = 0; y < tiles; ++y) {
-                checkerBoard[x][y].setFill(getTileColor(x, y, true));
-            }
-        }
-    }
-
-    protected void revertTileColors() {
-        for (int x = 0; x < tiles; ++x) {
-            for (int y = 0; y < tiles; ++y) {
-
-                checkerBoard[x][y].setFill(getTileColor(x, y, false));
+                checkerBoard[x][y].setFill(getTileColor(x, y, setToBlack));
             }
         }
     }
@@ -58,5 +51,9 @@ public class CheckerBoard extends Pane {
 
     protected Paint[] getTheme() {
         return new Paint[] {v1, v2};
+    }
+
+    protected boolean isHasDefaultTileScheme() {
+        return hasDefaultTileScheme;
     }
 }

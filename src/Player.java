@@ -132,11 +132,14 @@ public class Player {
         return pieces;
     }
 
-//    protected HashSet<Move> getPossibleMoves() {
-//
-//        for (Piece piece : pieces) {
-//            Move move = new Move(piece.getTileOccupying(), tiles);
-//
-//        }
-//    }
+    protected HashSet<Move> getPossibleMoves(Tile[][] board) {
+        HashSet<Move> moves = new HashSet<>();
+
+        for (Piece piece : pieces) {
+            Move move = new Move(piece.getTileOccupying(), board);
+            move.addPathsForPiece(piece);
+            moves.add(move);
+        }
+        return moves;
+    }
 }

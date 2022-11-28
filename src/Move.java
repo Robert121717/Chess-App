@@ -2,7 +2,7 @@ import java.util.HashSet;
 
 class Move {
 
-    private final Tile[][] tiles;
+    private final Tile[][] board;
     private final HashSet<int[]> moveCoordinates = new HashSet<>();
     private final HashSet<Tile> destinationTiles = new HashSet<>();
     private final Tile originTile;
@@ -10,8 +10,8 @@ class Move {
     private final int originY;
     private boolean inProgress;
 
-    protected Move(Tile originTile, Tile[][] tiles) {
-        this.tiles = tiles;
+    protected Move(Tile originTile, Tile[][] board) {
+        this.board = board;
 
         this.originTile = originTile;
         originX = originTile.getTileX();
@@ -33,10 +33,6 @@ class Move {
         selectPaths(false);
     }
 
-    protected HashSet<Tile> getDestinationTiles() {
-        return destinationTiles;
-    }
-
     protected void addPathsForPiece(Piece piece) {
 
         switch (piece.getName()) {
@@ -56,7 +52,7 @@ class Move {
             int x = coordinate[0];
             int y = coordinate[1];
 
-            destinationTiles.add(tiles[x][y]);
+            destinationTiles.add(board[x][y]);
         }
     }
 
@@ -64,7 +60,7 @@ class Move {
         return !destinationTiles.isEmpty();
     }
 
-    protected void selectPaths(boolean highlightTiles) {
+    protected void selectPaths(boolean active) {
 
         String transparent = "-fx-background-color: transparent;";
         String highlight = "-fx-background-color: " +
@@ -72,49 +68,40 @@ class Move {
                 "rgba(0, 0, 0, 0), " +
                 "rgba(58, 175, 220, 0.88));";
 
-        String style = highlightTiles ? highlight : transparent;
+        String style = active ? highlight : transparent;
 
         originTile.getNode().setStyle(style);
-        originTile.setSelected(highlightTiles);
+        originTile.setSelected(active);
 
         for (Tile tile : destinationTiles) {
-            tile.setDestinationTile(highlightTiles);
+            tile.setDestinationTile(active);
             tile.getNode().setStyle(style);
         }
     }
 
     private void addKingPaths() {
-        // todo check for self sabotaging move
+        // todo check for self sabotaging move, castling
         for (int x = -1; x <= 1; ++x) {
             for (int y = -1; y <= 1; ++y) {
+                Path path = new Path(originX, originY, x, y);
 
-                int xCoord = x + originX;
-                int yCoord = y + originY;
-
-                boolean newTile = x != 0 || y != 0;
-                boolean tileExists = 0 <= xCoord && xCoord <= 7 && 0 <= yCoord && yCoord <= 7;
-
-                if (newTile && tileExists) {
-                    Tile possiblePath = tiles[xCoord][yCoord];
-
-                    boolean isOccupied = possiblePath.isOccupied();
-                    boolean isAvailable = false;
-
-                    if (isOccupied) {
-                        Piece neighboringPiece = possiblePath.getPiece();
-                        if (neighboringPiece.getName().equals("rook") && neighboringPiece.isPlayer()) {
-                            isAvailable = true;
-
-                        } else if (!neighboringPiece.isPlayer()) {
-                            isAvailable = true;
-                        }
-                    }
-
-                    if (!isOccupied || isAvailable)
-                        moveCoordinates.add(new int[] {xCoord, yCoord});
+                if (path.isAvailable()) {
+                    moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
                 }
             }
         }
+        addCastlePaths();
+    }
+
+    private void addCastlePaths() {
+
+        Path leftCastlePath = new Path(originX, originY, -4, 0);
+        if (leftCastlePath.canCastle(false))
+            moveCoordinates.add(new int[] { leftCastlePath.getDestX(), leftCastlePath.getDestY() });
+
+        Path rightCastlePath = new Path(originX, originY, 3, 0);
+        if (rightCastlePath.canCastle(true))
+            moveCoordinates.add(new int[] { rightCastlePath.getDestX(), rightCastlePath.getDestY() });
     }
 
     private void addQueenPaths() {
@@ -131,22 +118,10 @@ class Move {
 
         for (int x = -2; x <= 2; ++x) {
             for (int y = -2; y <= 2; ++y) {
-                int xCoord = x + originX;
-                int yCoord = y + originY;
+                Path path = new Path(originX, originY, x, y);
 
-                boolean newTile = x != 0 || y != 0;
-                boolean tileExists = 0 <= xCoord && xCoord <= 7 && 0 <= yCoord && yCoord <= 7;
-                boolean allowedMove = x != y && (Math.abs(x) == 2 && Math.abs(y) == 1) ||
-                        (Math.abs(x) == 1 && Math.abs(y) == 2);
-
-                if (newTile && tileExists && allowedMove) {
-                    Tile possiblePath = tiles[xCoord][yCoord];
-
-                    if (!possiblePath.isOccupied() ||
-                            (possiblePath.isOccupied() && !possiblePath.getPiece().isPlayer())) {
-                        moveCoordinates.add(new int[] {xCoord, yCoord});
-                    }
-                }
+                if (path.isAvailable() && path.isKnightPath())
+                    moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
             }
         }
     }
@@ -162,31 +137,17 @@ class Move {
         // moving forward one or two spaces
         int iterations = originY == 6 ? 2 : 1;
         for (int row = 1; row <= iterations; ++row) {
-            int yCoord = originY - row;
+            Path path = new Path(originX, originY, 0, -row);
 
-            boolean tileExists = 0 <= yCoord;
-            if (tileExists) {
-                boolean isOccupied = tiles[originX][yCoord].isOccupied();
-
-                if (!isOccupied)
-                    moveCoordinates.add(new int[]{originX, yCoord});
-            }
+            if (path.exists() && !path.isOccupied())
+                moveCoordinates.add(new int[]{path.getDestX(), path.getDestY()});
         }
-        // overtaking opponent piece diagonally
-        int yCoord = originY + 1;
+        // attacking opponent piece diagonally
         for (int col = -1; col <= 1; col += 2) {
-            int xCoord = originX + col;
+            Path path = new Path(originX, originY, col, -1);
 
-            boolean tileExists = 0 <= xCoord && xCoord <= 7 && 0 <= yCoord && yCoord <= 7;
-            if (tileExists) {
-                Tile possiblePath = tiles[xCoord][yCoord];
-                if (possiblePath.isOccupied()) {
-                    Piece occupyingPiece = possiblePath.getPiece();
-
-                    if (!occupyingPiece.isPlayer())
-                        moveCoordinates.add(new int[]{xCoord, yCoord});
-                }
-            }
+            if (path.exists() && path.hasOpponent())
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
         }
     }
 
@@ -214,74 +175,130 @@ class Move {
     }
 
     private boolean testDiagonalPath(int col, int row) {
-        boolean continueUp = true;
 
-        boolean tileExists = 0 <= row && row <= 7;
-        if (!tileExists) return false;
+        Path path = new Path(originX, originY, col - originX, row - originY);
+        if (path.isAvailable())
+            moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
 
-        Tile possiblePath = tiles[col][row];
-        if (possiblePath.isOccupied()) {
-            if (!possiblePath.getPiece().isPlayer()) {
-                moveCoordinates.add(new int[] {col, row});
-            }
-            continueUp = false;
-        } else {
-            moveCoordinates.add(new int[] {col, row});
-        }
-        return continueUp;
+        return path.exists() && !path.isOccupied();
     }
 
     private void addHorizontalPaths() {
-        // to the left of starting coordinate
+
         for (int col = originX - 1; 0 <= col; --col) {
-            Tile possiblePath = tiles[col][originY];
+            int deltaX = -1 * (originX  -col);
 
-            if (possiblePath.isOccupied()) {
-                if (!possiblePath.getPiece().isPlayer()) {
-                    moveCoordinates.add(new int[] {col, originY});
-                }
-                break;
-            }
-            moveCoordinates.add(new int[] {col, originY});
+            Path path = new Path(originX, originY, deltaX, 0);
+            if (path.isAvailable())
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
+
+            if (path.isOccupied()) break;
         }
-        // to the right of starting coordinate
-        for (int col = originX + 1; col <= 7; ++col) {
-            Tile possiblePath = tiles[col][originY];
 
-            if (possiblePath.isOccupied()) {
-                if (!possiblePath.getPiece().isPlayer()) {
-                    moveCoordinates.add(new int[] {col, originY});
-                }
-                break;
-            }
-            moveCoordinates.add(new int[] {col, originY});
+        for (int col = originX + 1; col <= 7; ++col) {
+            int deltaX = col - originX;
+
+            Path path = new Path(originX, originY, deltaX, 0);
+            if (path.isAvailable())
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
+
+            if (path.isOccupied()) break;
         }
     }
 
     private void addVerticalPaths() {
-        // below the starting coordinate
+
         for (int row = originY - 1; 0 <= row; --row) {
-            Tile possiblePath = tiles[originX][row];
+            int deltaY = -1 * (originY - row);
 
-            if (possiblePath.isOccupied()) {
-                if (!possiblePath.getPiece().isPlayer()) {
-                    moveCoordinates.add(new int[] {originX, row});
-                }
-                break;
-            }
-            moveCoordinates.add(new int[] {originX, row});
+            Path path = new Path(originX, originY, 0, deltaY);
+            if (path.isAvailable())
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
+
+            if (path.isOccupied()) break;
         }
-        // above the starting coordinate
         for (int row = originY + 1; row <= 7; ++row) {
-            Tile possiblePath = tiles[originX][row];
+            int deltaY = row - originY;
 
-            if (possiblePath.isOccupied()) {
-                if (!possiblePath.getPiece().isPlayer()) {
-                    moveCoordinates.add(new int[] {originX, row});
+            Path path = new Path(originX, originY, 0, deltaY);
+            if (path.isAvailable())
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
+
+            if (path.isOccupied()) break;
+        }
+    }
+
+    private class Path {
+
+        private final int deltaX;
+        private final int deltaY;
+        private final int destX;
+        private final int destY;
+
+        // todo second constructor with different object array, same name (should work)
+        // can also check if one is null then use the other for helper methods or use instanceOf
+        private Path(int sourceX, int sourceY, int deltaX, int deltaY) {
+            this.deltaX = deltaX;
+            this.deltaY = deltaY;
+
+            destX = sourceX + deltaX;
+            destY = sourceY + deltaY;
+        }
+
+        private boolean isOccupied() {
+            return board[destX][destY].isOccupied();
+        }
+
+        private boolean hasOpponent() {
+            return isOccupied() && !board[destX][destY].getPiece().isPlayer();
+        }
+
+        private boolean isAvailable() {
+            if (!exists()) return false;
+
+            if (board[destX][destY].isOccupied())
+                return !board[destX][destY].getPiece().isPlayer();
+            else
+                return true;
+        }
+
+        private boolean exists() {
+            boolean isNew = 0 != deltaX || 0 != deltaY;
+            return isNew && 0 <= destX && destX <= 7 && 0 <= destY && destY <= 7;
+        }
+
+        private boolean isKnightPath() {
+            return deltaX != deltaY && (Math.abs(deltaX) == 2 && Math.abs(deltaY) == 1) ||
+                    (Math.abs(deltaX) == 1 && Math.abs(deltaY) == 2);
+        }
+
+        private boolean canCastle(boolean toRight) {
+            if (originX != 4 && originY != 0) return false;
+
+            boolean vacantTileGap = true;
+            int start = toRight ? originX + 1: destX + 1;
+            int end = toRight ? destX : originX;
+
+            for (int col = start; col < end; ++col) {
+                if (board[col][destY].isOccupied()) {
+                    vacantTileGap = false;
+                    break;
                 }
-                break;
             }
-            moveCoordinates.add(new int[] {originX, row});
+            Tile destTile = board[destX][destY];
+            boolean hasRook = destTile.isOccupied() &&
+                    destTile.getPiece().isPlayer() &&
+                    destTile.getPiece().getName().equals("rook");
+
+            return vacantTileGap && hasRook;
+        }
+
+        private int getDestX() {
+            return destX;
+        }
+
+        private int getDestY() {
+            return destY;
         }
     }
 }

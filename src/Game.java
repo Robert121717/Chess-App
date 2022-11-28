@@ -1,5 +1,8 @@
+import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.*;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Stack;
 
 public class Game {
 
@@ -53,33 +56,44 @@ public class Game {
 
     protected Tile finishMove(Tile destinationTile) {
 
-        StackPane placeHolder = getTilePlaceHolder(destinationTile);
+        boolean castled = isCastleMove(currentMove.getOriginTile(), destinationTile);
 
+        StackPane placeHolder = getTilePlaceHolder(destinationTile);
         Tile originTile = currentMove.getOriginTile();
         StackPane selectedNode = originTile.getNode();
 
-        updateChessBoard(destinationTile, originTile, selectedNode, placeHolder);
-        updateTileData(destinationTile, originTile, selectedNode, placeHolder);
+        updateChessBoard(destinationTile, originTile, placeHolder, selectedNode);
+        updateTileData(destinationTile, originTile, placeHolder, selectedNode, castled);
 
         currentMove.endMove();
+        System.out.println("GAME | Tile: " + originTile.hashCode() + ", Node: " + placeHolder.hashCode());
+        System.out.println("GAME | Tile: " + destinationTile.hashCode() + ", Node: " + destinationTile.getNode().hashCode());
         return originTile;
     }
 
-    private StackPane getTilePlaceHolder(Tile destinationTile) {
-        StackPane placeHolder;
+    private boolean isCastleMove(Tile originTile, Tile destinationTile) {
 
         if (destinationTile.isOccupied()) {
-            destinationTile.getPiece().setActive(false);
-            placeHolder = new StackPane();
+            Piece movedPiece = originTile.getPiece();
+            Piece replacingPiece = destinationTile.getPiece();
 
-        } else {
-            placeHolder = destinationTile.getNode();
+            return movedPiece.isPlayer() && movedPiece.getName().equals("king")
+                    && replacingPiece.isPlayer() && replacingPiece.getName().equals("rook");
         }
-        return placeHolder;
+        return false;
+    }
+
+    private StackPane getTilePlaceHolder(Tile destinationTile) {
+
+        if (destinationTile.isOccupied() && !destinationTile.getPiece().isPlayer()) {
+            destinationTile.getPiece().setActive(false);
+            return new StackPane();
+        }
+        return destinationTile.getNode();
     }
 
     private void updateChessBoard(Tile destinationTile, Tile originTile,
-                                  StackPane selectedNode, StackPane placeHolder) {
+                                  StackPane placeHolder, StackPane selectedNode) {
 
         int originX = originTile.getTileX(), originY = originTile.getTileY();
         int destX = destinationTile.getTileX(), destY = destinationTile.getTileY();
@@ -92,16 +106,22 @@ public class Game {
     }
 
     private void updateTileData(Tile destinationTile, Tile originTile,
-                                StackPane selectedNode, StackPane placeHolder) {
+                                StackPane placeHolder, StackPane selectedNode, boolean castled) {
 
         Piece movedPiece = originTile.getPiece();
         movedPiece.setTileOccupying(destinationTile);
         movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
 
+        Piece replacementPiece = null;
+        if (castled) {
+            replacementPiece = destinationTile.getPiece();
+            replacementPiece.setTileOccupying(originTile);
+            replacementPiece.setLocation(originTile.getTileX(), originTile.getTileY());
+        }
         destinationTile.setPiece(movedPiece);
         destinationTile.setNode(selectedNode);
 
-        originTile.setPiece(null);
+        originTile.setPiece(replacementPiece);
         originTile.setNode(placeHolder);
     }
 }
