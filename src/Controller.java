@@ -337,27 +337,24 @@ public class Controller implements Initializable {
         }
     }
 
-    private void newTileSelection(Tile tile) {
+    private void newTileSelection(Tile clickedTile) {
        if (!interactiveBoard) return;
        closePopups();
 
-       if (tile.isDestinationTile()) {
-           Tile tilePlaceHolder = game.finishMove(tile);
+       if (clickedTile.isDestinationTile()) {
 
-           tilePlaceHolder.getNode().setOnMouseClicked(e ->
-                   newTileSelection(tilePlaceHolder));
-           System.out.println("Tile: " + tilePlaceHolder.hashCode() + ", Node: " + tilePlaceHolder.getNode().hashCode());
+           Tile[] modifiedTiles = game.finishMove(clickedTile);
+           for (Tile tile : modifiedTiles)
+               tile.getNode().setOnMouseClicked(e -> newTileSelection(tile));
 
            npcResponse();
 
-       } else if (tile.isSelected()) {
+       } else if (clickedTile.isSelected()) {
            game.cancelMove();
 
-       } else if (tile.isOccupied() && tile.getPiece().isPlayer()) {
-           game.newMove(tile);
-
-       } else
-           System.out.println("ELSE | Tile: " + tile.hashCode() + ", Node: " + tile.getNode().hashCode());
+       } else if (clickedTile.isOccupied() && clickedTile.getPiece().isPlayer()) {
+           game.newMove(clickedTile);
+       }
     }
 
     private void closePopups() {
@@ -371,7 +368,9 @@ public class Controller implements Initializable {
     }
     
     private void npcResponse() {
+        interactiveBoard = false;
         // the long awaited hard part
+        interactiveBoard = true;
     }
 
     protected void setStage(Stage stage) {

@@ -1,6 +1,7 @@
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -54,27 +55,22 @@ public class Game {
         currentMove.endMove();
     }
 
-    protected Tile finishMove(Tile destinationTile) {
-
-        boolean castled = isCastleMove(currentMove.getOriginTile(), destinationTile);
+    protected Tile[] finishMove(Tile destinationTile) {
 
         StackPane placeHolder = getTilePlaceHolder(destinationTile);
-        Tile originTile = currentMove.getOriginTile();
-        StackPane selectedNode = originTile.getNode();
+        updateChessBoard(destinationTile, placeHolder);
 
-        updateChessBoard(destinationTile, originTile, placeHolder, selectedNode);
-        updateTileData(destinationTile, originTile, placeHolder, selectedNode, castled);
+        boolean castled = isCastleMove(destinationTile);
+        updateTileData(destinationTile, placeHolder, castled);
 
         currentMove.endMove();
-        System.out.println("GAME | Tile: " + originTile.hashCode() + ", Node: " + placeHolder.hashCode());
-        System.out.println("GAME | Tile: " + destinationTile.hashCode() + ", Node: " + destinationTile.getNode().hashCode());
-        return originTile;
+        return new Tile[] { currentMove.getOriginTile(), destinationTile };
     }
 
-    private boolean isCastleMove(Tile originTile, Tile destinationTile) {
+    private boolean isCastleMove(Tile destinationTile) {
 
         if (destinationTile.isOccupied()) {
-            Piece movedPiece = originTile.getPiece();
+            Piece movedPiece = currentMove.getOriginTile().getPiece();
             Piece replacingPiece = destinationTile.getPiece();
 
             return movedPiece.isPlayer() && movedPiece.getName().equals("king")
@@ -92,8 +88,10 @@ public class Game {
         return destinationTile.getNode();
     }
 
-    private void updateChessBoard(Tile destinationTile, Tile originTile,
-                                  StackPane placeHolder, StackPane selectedNode) {
+    private void updateChessBoard(Tile destinationTile, StackPane placeHolder) {
+
+        Tile originTile = currentMove.getOriginTile();
+        StackPane selectedNode = originTile.getNode();
 
         int originX = originTile.getTileX(), originY = originTile.getTileY();
         int destX = destinationTile.getTileX(), destY = destinationTile.getTileY();
@@ -105,23 +103,36 @@ public class Game {
         chessBoard.add(placeHolder, originX, originY);
     }
 
-    private void updateTileData(Tile destinationTile, Tile originTile,
-                                StackPane placeHolder, StackPane selectedNode, boolean castled) {
+    private void updateTileData(Tile destinationTile, StackPane placeHolder, boolean castled) {
 
-        Piece movedPiece = originTile.getPiece();
-        movedPiece.setTileOccupying(destinationTile);
-        movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
+        Tile originTile = currentMove.getOriginTile();
 
         Piece replacementPiece = null;
         if (castled) {
             replacementPiece = destinationTile.getPiece();
-            replacementPiece.setTileOccupying(originTile);
-            replacementPiece.setLocation(originTile.getTileX(), originTile.getTileY());
+            updateCastledPiece(replacementPiece, originTile);
         }
+        Piece movedPiece = originTile.getPiece();
+        updateMovedPiece(movedPiece, destinationTile);
+
         destinationTile.setPiece(movedPiece);
-        destinationTile.setNode(selectedNode);
+        destinationTile.setNode(originTile.getNode());
 
         originTile.setPiece(replacementPiece);
         originTile.setNode(placeHolder);
+    }
+
+    private void updateMovedPiece(Piece movedPiece, Tile destinationTile) {
+
+        movedPiece.setTileOccupying(destinationTile);
+        movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
+        movedPiece.disableCastle();
+    }
+
+    private void updateCastledPiece(Piece castledPiece, Tile destinationTile) {
+
+        castledPiece.setTileOccupying(destinationTile);
+        castledPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
+        castledPiece.disableCastle();
     }
 }

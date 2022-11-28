@@ -16,6 +16,7 @@ public class Piece {
     private boolean isPlayer = false;
     private Tile tileOccupying;
     private int value;
+    private boolean canCastle = true;
 
 
     protected Piece(String color, String name, double width, double height) {
@@ -108,5 +109,13 @@ public class Piece {
             case "pawn" -> value = 1;
             default -> value = 200;
         }
+    }
+
+    protected boolean canCastle() {
+        return canCastle;
+    }
+
+    protected void disableCastle() {
+        canCastle = false;
     }
 }

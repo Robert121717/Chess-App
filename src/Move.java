@@ -80,7 +80,7 @@ class Move {
     }
 
     private void addKingPaths() {
-        // todo check for self sabotaging move, castling
+
         for (int x = -1; x <= 1; ++x) {
             for (int y = -1; y <= 1; ++y) {
                 Path path = new Path(originX, originY, x, y);
@@ -95,12 +95,15 @@ class Move {
 
     private void addCastlePaths() {
 
+        Piece movedPiece = board[originX][originY].getPiece();
+        if (!movedPiece.canCastle()) return;
+
         Path leftCastlePath = new Path(originX, originY, -4, 0);
-        if (leftCastlePath.canCastle(false))
+        if (leftCastlePath.hasCastlePath(false))
             moveCoordinates.add(new int[] { leftCastlePath.getDestX(), leftCastlePath.getDestY() });
 
         Path rightCastlePath = new Path(originX, originY, 3, 0);
-        if (rightCastlePath.canCastle(true))
+        if (rightCastlePath.hasCastlePath(true))
             moveCoordinates.add(new int[] { rightCastlePath.getDestX(), rightCastlePath.getDestY() });
     }
 
@@ -272,25 +275,25 @@ class Move {
                     (Math.abs(deltaX) == 1 && Math.abs(deltaY) == 2);
         }
 
-        private boolean canCastle(boolean toRight) {
-            if (originX != 4 && originY != 0) return false;
+        private boolean hasCastlePath(boolean toRight) {
+
+            int startCol = toRight ? originX + 1: destX + 1;
+            int endCol = toRight ? destX : originX;
 
             boolean vacantTileGap = true;
-            int start = toRight ? originX + 1: destX + 1;
-            int end = toRight ? destX : originX;
-
-            for (int col = start; col < end; ++col) {
+            for (int col = startCol; col < endCol; ++col) {
                 if (board[col][destY].isOccupied()) {
                     vacantTileGap = false;
                     break;
                 }
             }
             Tile destTile = board[destX][destY];
-            boolean hasRook = destTile.isOccupied() &&
+            boolean canCastle = destTile.isOccupied() &&
                     destTile.getPiece().isPlayer() &&
-                    destTile.getPiece().getName().equals("rook");
+                    destTile.getPiece().getName().equals("rook") &&
+                    destTile.getPiece().canCastle();
 
-            return vacantTileGap && hasRook;
+            return vacantTileGap && canCastle;
         }
 
         private int getDestX() {
