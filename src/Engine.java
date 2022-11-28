@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.HashSet;
 
 public class Engine {
@@ -11,45 +10,46 @@ public class Engine {
         this.npc = npc;
     }
 
-//    protected int evaluateBoard(Tile[][] board, int depth) {
-//
-//    }
+    protected int evaluateBoard(Tile[][] board, int depth) {
+        return 0;
+    }
 
     private class Tree {
 
         int currentVal;
 
-//        private int min(Tile[][] board, int depth) {
-//            if (depth == 0 /*|| check */) {
-//                return evaluateBoard(board, depth);
-//            }
-//            int lowestVal = Integer.MAX_VALUE;
-//
-//
-//            return 0;
-//        }
+        private int min(Tile[][] board, int depth) {
+            if (depth == 0 /*|| check */) {
+                return evaluateBoard(board, depth);
+            }
+            int lowestVal = Integer.MAX_VALUE;
 
-//        private int max(Tile[][] board, int depth) {
-//            if (depth == 0 /*|| check */) {
-//                return evaluateBoard(board, depth);
-//            }
-//            int highestVal = Integer.MIN_VALUE;
-//            for (Move move : npc.getPossibleMoves(board)) {
-//
-//            }
-//
-//            return 0;
-//        }
+
+            return 0;
+        }
+
+        private int max(Tile[][] board, int depth) {
+            if (depth == 0 /*|| check */) {
+                return evaluateBoard(board, depth);
+            }
+            int highestVal = Integer.MIN_VALUE;
+            for (Move move : npc.getPossibleMoves(board)) {
+
+            }
+
+            return 0;
+        }
 
     }
 
     private static class ShadowMove {
 
 
-//
-//        protected static HashSet<Tile> getPossibleMoves(Tile[][] board) {
+
+        protected static HashSet<Tile> getPossibleMoves(Tile[][] board) {
 //            HashSet<Piece>
-//        }
+            return null;
+        }
 
         private static HashSet<Piece> getPieces(Tile[][] board) {
             HashSet<Piece> pieces = new HashSet<>();

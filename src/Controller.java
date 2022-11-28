@@ -2,9 +2,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.effect.InnerShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -18,7 +16,6 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
 import java.util.*;
-import static javafx.scene.effect.BlurType.GAUSSIAN;
 
 public class Controller implements Initializable {
 
@@ -48,7 +45,7 @@ public class Controller implements Initializable {
     @FXML
     private GridPane chessBoard;
     private CheckerBoard boardBackground;
-    private String userColor = "white";
+    private String userAlliance = "white";
     private boolean interactiveBoard = false;
     private Game game;
 
@@ -86,7 +83,7 @@ public class Controller implements Initializable {
         VBox root = new VBox(15);
         root.setId("new-game-root-vbox");
 
-        HBox teamPrompt = getPlayerTeamPrompt();
+        HBox teamPrompt = getAlliancePrompt();
 
         Button playButton = new Button("Play!");
         playButton.setId("play-button");
@@ -198,22 +195,22 @@ public class Controller implements Initializable {
     }
 
     private ScrollPane createBoardThemes() {
-        final int delta = 50;
 
-        ScrollPane root = new ScrollPane();
-        root.setHmin(minScrollPos);
-        root.setHmax(maxScrollPos);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setHmin(minScrollPos);
+        scrollPane.setHmax(maxScrollPos);
 
         HBox container = getBoards();
+        final int delta = 50;
         container.setOnScroll(e -> {
             if (e.getDeltaY() < 0 || e.getDeltaX() < 0)
-                root.setHvalue(scrollPos == minScrollPos ? minScrollPos : (scrollPos -= delta));
+                scrollPane.setHvalue(scrollPos == minScrollPos ? minScrollPos : (scrollPos -= delta));
             else
-                root.setHvalue(scrollPos + delta == maxScrollPos ? maxScrollPos : (scrollPos += delta));
+                scrollPane.setHvalue(scrollPos + delta == maxScrollPos ? maxScrollPos : (scrollPos += delta));
         });
+        scrollPane.setContent(container);
 
-        root.setContent(container);
-        return root;
+        return scrollPane;
     }
 
     private HBox getBoards() {
@@ -222,22 +219,20 @@ public class Controller implements Initializable {
 
         for (CheckerBoard board : Themes.getBoards()) {
             container.getChildren().add(board);
-            board.setOnMouseClicked(e -> setBoardTheme(container, board));
+            board.setOnMouseClicked(e -> setBoardTheme(board));
         }
         return container;
     }
 
-    private void setBoardTheme(HBox boardContainer, CheckerBoard boardSelected) {
-
-        for (Node board : boardContainer.getChildren()) {
-            board.setEffect(new InnerShadow(GAUSSIAN, Color.WHITE, 10, 0.5, 0, 0));
-        }
-        // todo make this better
-        boardSelected.setEffect(
-                new InnerShadow(GAUSSIAN, Color.web("#3aafdc", 0.88), 50, 0.1, 0, 0));
+    private void setBoardTheme(CheckerBoard boardSelected) {
         Paint[] theme = boardSelected.getTheme();
+
         tileFill1 = theme[1];
         tileFill2 = theme[0];
+        boardBackground.changeTileColor(tileFill1, tileFill2, userAlliance);
+
+        appearanceButton.setSelected(false);
+        appearancePopup.hide();
     }
 
     private void showPopup(PopupControl popup, Control ownerNode, PopupWindow.AnchorLocation anchorLoc) {
@@ -252,19 +247,19 @@ public class Controller implements Initializable {
         popup.show(ownerNode, anchorPoint.getX(), anchorPoint.getY());
     }
 
-    private HBox getPlayerTeamPrompt() {
+    private HBox getAlliancePrompt() {
         HBox container = new HBox(15);
         container.setId("team-prompt-container");
 
-        Label teamPrompt = new Label("Team");
-        teamPrompt.setFont(new Font(14));
+        Label alliancePrompt = new Label("Team");
+        alliancePrompt.setFont(new Font(14));
 
-        ToggleButton teamSelector = new ToggleButton();
-        teamSelector.setId("team-toggle-button");
+        ToggleButton allianceSelector = new ToggleButton();
+        allianceSelector.setId("team-toggle-button");
 
-        teamSelector.selectedProperty().addListener((observable, wasSelected, isSelected) ->
-                userColor = isSelected ? "black" : "white");
-        container.getChildren().addAll(teamPrompt, teamSelector);
+        allianceSelector.selectedProperty().addListener((observable, wasSelected, isSelected) ->
+                userAlliance = isSelected ? "black" : "white");
+        container.getChildren().addAll(alliancePrompt, allianceSelector);
 
         return container;
     }
@@ -276,13 +271,13 @@ public class Controller implements Initializable {
 
         boardBackground = new CheckerBoard(tileFill1, tileFill2, 55);
 
-        if (userColor.equals("white") && !boardBackground.isHasDefaultTileScheme())
-            boardBackground.switchTileColors(false);
+        if (userAlliance.equals("white") && !boardBackground.isHasDefaultTileScheme())
+            boardBackground.setUserAlliance(userAlliance);
 
-        else if (userColor.equals("black") && boardBackground.isHasDefaultTileScheme())
-            boardBackground.switchTileColors(true);
+        else if (userAlliance.equals("black") && boardBackground.isHasDefaultTileScheme())
+            boardBackground.setUserAlliance(userAlliance);
 
-        game = new Game(chessBoard, boardBackground.getTiles(), userColor);
+        game = new Game(chessBoard, boardBackground.getTiles(), userAlliance);
         configureBoard();
     }
 

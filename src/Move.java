@@ -1,3 +1,6 @@
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+
 import java.util.HashSet;
 
 class Move {
@@ -34,7 +37,7 @@ class Move {
     }
 
     protected void addPathsForPiece(Piece piece) {
-
+        // todo check for self sabotaging moves in reference to king for all pieces
         switch (piece.getName()) {
             case "king" -> addKingPaths();
             case "queen" -> addQueenPaths();
@@ -64,19 +67,24 @@ class Move {
 
         String transparent = "-fx-background-color: transparent;";
         String highlight = "-fx-background-color: " +
-                "radial-gradient(focus-distance 0% , center 50% 50% , radius 100% , " +
-                "rgba(0, 0, 0, 0), " +
-                "rgba(58, 175, 220, 0.88));";
+                            "radial-gradient(focus-distance 0% , center 50% 50% , radius 100%, " +
+                            "rgba(0, 0, 0, 0), rgba(58, 175, 220, 0.7)), rgba(0, 0, 0, 0);";
 
-        String style = active ? highlight : transparent;
+        String tileOverlay = active ? highlight : transparent;
 
-        originTile.getNode().setStyle(style);
         originTile.setSelected(active);
+        originTile.getNode().setStyle(tileOverlay);
+        originTile.setStroke(getStrokeColor(originTile, active));
 
         for (Tile tile : destinationTiles) {
             tile.setDestinationTile(active);
-            tile.getNode().setStyle(style);
+            tile.getNode().setStyle(tileOverlay);
+            tile.setStroke(getStrokeColor(tile, active));
         }
+    }
+
+    private Paint getStrokeColor(Tile tile, boolean highlight) {
+        return highlight ? Color.rgb(58, 175, 220, 0.5) : tile.getFill();
     }
 
     private void addKingPaths() {
