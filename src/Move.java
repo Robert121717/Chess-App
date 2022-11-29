@@ -63,6 +63,10 @@ class Move {
         return !destinationTiles.isEmpty();
     }
 
+    protected void addDestinationTile(Tile tile) {
+        destinationTiles.add(tile);
+    }
+
     protected void selectPaths(boolean active) {
 
         String transparent = "-fx-background-color: transparent;";
@@ -108,11 +112,11 @@ class Move {
 
         Path leftCastlePath = new Path(originX, originY, -4, 0);
         if (leftCastlePath.hasCastlePath(false))
-            moveCoordinates.add(new int[] { leftCastlePath.getDestX(), leftCastlePath.getDestY() });
+            moveCoordinates.add(new int[] { leftCastlePath.getDestX() + 2, leftCastlePath.getDestY() });
 
         Path rightCastlePath = new Path(originX, originY, 3, 0);
         if (rightCastlePath.hasCastlePath(true))
-            moveCoordinates.add(new int[] { rightCastlePath.getDestX(), rightCastlePath.getDestY() });
+            moveCoordinates.add(new int[] { rightCastlePath.getDestX() - 1, rightCastlePath.getDestY() });
     }
 
     private void addQueenPaths() {

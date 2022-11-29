@@ -338,7 +338,7 @@ public class Controller implements Initializable {
 
        if (clickedTile.isDestinationTile()) {
 
-           Tile[] modifiedTiles = game.finishMove(clickedTile);
+           List<Tile> modifiedTiles = game.finishMove(clickedTile);
            for (Tile tile : modifiedTiles)
                tile.getNode().setOnMouseClicked(e -> newTileSelection(tile));
 

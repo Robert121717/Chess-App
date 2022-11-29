@@ -153,7 +153,8 @@
     -fx-border-color: transparent;
 }
 
-.scroll-pane .decrement-button .decrement-arrow, .scroll-pane . increment-button .increment-arrow {
+.scroll-pane .decrement-button .decrement-arrow,
+.scroll-pane . increment-button .increment-arrow {
     -fx-background-color: transparent;
 }
 
@@ -161,4 +162,3 @@
     -fx-background-color: transparent;
     -fx-pref-height: 15px;
 }
-

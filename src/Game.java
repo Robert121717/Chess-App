@@ -1,9 +1,7 @@
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Stack;
+
+import java.util.*;
 
 public class Game {
 
@@ -55,28 +53,68 @@ public class Game {
         currentMove.endMove();
     }
 
-    protected Tile[] finishMove(Tile destinationTile) {
+    protected List<Tile> finishMove(Tile destinationTile) {
+        List<Tile> modifiedTiles = new ArrayList<>();
 
+        if (isCastleMove(destinationTile)) {
+            boolean toRight = getCastleDirection(destinationTile);
+            modifiedTiles.addAll(castle(toRight));
+        }
+        Tile originTile = currentMove.getOriginTile();
         StackPane placeHolder = getTilePlaceHolder(destinationTile);
-        updateChessBoard(destinationTile, placeHolder);
 
-        boolean castled = isCastleMove(destinationTile);
-        updateTileData(destinationTile, placeHolder, castled);
+        updateChessBoard(originTile, destinationTile, placeHolder);
+        updateTileData(originTile, destinationTile, placeHolder);
 
         currentMove.endMove();
-        return new Tile[] { currentMove.getOriginTile(), destinationTile };
+
+        modifiedTiles.add(originTile);
+        modifiedTiles.add(destinationTile);
+
+        return modifiedTiles;
+    }
+
+    private List<Tile> castle(boolean toRight) {
+        Tile kingTile = currentMove.getOriginTile();
+
+        int kingX = kingTile.getTileX(), kingY = kingTile.getTileY();
+        int rookOriginX = toRight ? kingX + 3 : kingX - 4;
+        int rookDestX = toRight ? kingX + 1 : kingX - 1;
+
+        Tile rookTile = tiles[rookOriginX][kingY];
+        Tile destinationTile = tiles[rookDestX][kingY];
+        StackPane placeHolder = destinationTile.getNode();
+
+        updateChessBoard(rookTile, destinationTile, placeHolder);
+        updateTileData(rookTile, destinationTile, placeHolder);
+
+        currentMove.addDestinationTile(rookTile);
+        return Arrays.asList(rookTile, destinationTile);
+    }
+
+    private boolean getCastleDirection(Tile destinationTile) {
+        Tile originTile = currentMove.getOriginTile();
+
+        int originX = originTile.getTileX();
+        int destX = destinationTile.getTileX();
+
+        return originX - destX <= 0;
     }
 
     private boolean isCastleMove(Tile destinationTile) {
 
-        if (destinationTile.isOccupied()) {
-            Piece movedPiece = currentMove.getOriginTile().getPiece();
-            Piece replacingPiece = destinationTile.getPiece();
+        Tile originTile = currentMove.getOriginTile();
+        int originX = originTile.getTileX(), originY = originTile.getTileY();
 
-            return movedPiece.isPlayer() && movedPiece.getName().equals("king")
-                    && replacingPiece.isPlayer() && replacingPiece.getName().equals("rook");
-        }
-        return false;
+        Piece movedPiece = originTile.getPiece();
+        if (movedPiece.isPlayer() && !movedPiece.getName().equals("king"))
+            return false;
+
+        else if (originX != 4 || originY != 7)
+            return false;
+
+        int destX = destinationTile.getTileX();
+        return Math.abs(destX - originX) == 2;
     }
 
     private StackPane getTilePlaceHolder(Tile destinationTile) {
@@ -88,9 +126,7 @@ public class Game {
         return destinationTile.getNode();
     }
 
-    private void updateChessBoard(Tile destinationTile, StackPane placeHolder) {
-
-        Tile originTile = currentMove.getOriginTile();
+    private void updateChessBoard(Tile originTile, Tile destinationTile, StackPane placeHolder) {
         StackPane selectedNode = originTile.getNode();
 
         int originX = originTile.getTileX(), originY = originTile.getTileY();
@@ -103,22 +139,15 @@ public class Game {
         chessBoard.add(placeHolder, originX, originY);
     }
 
-    private void updateTileData(Tile destinationTile, StackPane placeHolder, boolean castled) {
+    private void updateTileData(Tile originTile, Tile destinationTile, StackPane placeHolder) {
 
-        Tile originTile = currentMove.getOriginTile();
-
-        Piece replacementPiece = null;
-        if (castled) {
-            replacementPiece = destinationTile.getPiece();
-            updateCastledPiece(replacementPiece, originTile);
-        }
         Piece movedPiece = originTile.getPiece();
         updateMovedPiece(movedPiece, destinationTile);
 
         destinationTile.setPiece(movedPiece);
         destinationTile.setNode(originTile.getNode());
 
-        originTile.setPiece(replacementPiece);
+        originTile.setPiece(null);
         originTile.setNode(placeHolder);
     }
 
@@ -127,12 +156,5 @@ public class Game {
         movedPiece.setTileOccupying(destinationTile);
         movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
         movedPiece.disableCastle();
-    }
-
-    private void updateCastledPiece(Piece castledPiece, Tile destinationTile) {
-
-        castledPiece.setTileOccupying(destinationTile);
-        castledPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
-        castledPiece.disableCastle();
     }
 }
