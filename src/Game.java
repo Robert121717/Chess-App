@@ -1,4 +1,3 @@
-import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.*;
 
 import java.util.*;
@@ -6,18 +5,18 @@ import java.util.*;
 public class Game {
 
     private final GridPane chessBoard;
-    private final Tile[][] tiles;
+    private final Tile[][] board;
     private Player npc;
     private Player user;
     private final String userColor;
     private final String npcColor;
 
-    private Move currentMove;
+    private Round currentRound;
 
-    protected Game(GridPane chessBoard, Tile[][] tiles, String userColor) {
+    protected Game(GridPane chessBoard, Tile[][] board, String userColor) {
 
         this.chessBoard = chessBoard;
-        this.tiles = tiles;
+        this.board = board;
         this.userColor = userColor;
         npcColor = userColor.equals("white") ? "black" : "white";
     }
@@ -26,31 +25,39 @@ public class Game {
         chessBoard.getChildren().clear();
         chessBoard.add(boardBackground, 0, 0);
 
-        currentMove = null;
+        currentRound = null;
         HashSet<Piece> pieces = new HashSet<>();
 
-        npc = new Player(tiles, npcColor, true);
+        npc = new Player(board, npcColor, true);
         pieces.addAll(npc.loadPieces());
 
-        user = new Player(tiles, userColor, false);
+        user = new Player(board, userColor, false);
         pieces.addAll(user.loadPieces());
 
         return pieces;
     }
 
-    protected void newMove(Tile selectedTile) {
-        if (currentMove != null && currentMove.isInProgress()) {
-            currentMove.selectPaths(false);
-        }
-        currentMove = new Move(selectedTile, tiles);
-        currentMove.addPathsForPiece(selectedTile.getPiece());
+    protected void makeNPCMove(Tile originTile, Tile destinationTile) {
 
-        if (currentMove.hasPaths()) currentMove.selectPaths(true);
-        else currentMove.endMove();
+        StackPane placeHolder = getTilePlaceHolder(destinationTile, true);
+
+        updateChessBoard(originTile, destinationTile, placeHolder);
+        updateTileData(originTile, destinationTile, placeHolder);
+    }
+
+    protected void newMove(Tile selectedTile) {
+        if (currentRound != null && currentRound.isInProgress()) {
+            currentRound.selectPaths(false);
+        }
+        currentRound = new Round(selectedTile, board, false);
+        currentRound.addPathsForPiece(selectedTile.getPiece());
+
+        if (currentRound.hasPaths()) currentRound.selectPaths(true);
+        else currentRound.endRound();
     }
 
     protected void cancelMove() {
-        currentMove.endMove();
+        currentRound.endRound();
     }
 
     protected List<Tile> finishMove(Tile destinationTile) {
@@ -60,13 +67,13 @@ public class Game {
             boolean toRight = getCastleDirection(destinationTile);
             modifiedTiles.addAll(castle(toRight));
         }
-        Tile originTile = currentMove.getOriginTile();
-        StackPane placeHolder = getTilePlaceHolder(destinationTile);
+        Tile originTile = currentRound.getOriginTile();
+        StackPane placeHolder = getTilePlaceHolder(destinationTile, false);
 
         updateChessBoard(originTile, destinationTile, placeHolder);
         updateTileData(originTile, destinationTile, placeHolder);
 
-        currentMove.endMove();
+        currentRound.endRound();
 
         modifiedTiles.add(originTile);
         modifiedTiles.add(destinationTile);
@@ -75,25 +82,25 @@ public class Game {
     }
 
     private List<Tile> castle(boolean toRight) {
-        Tile kingTile = currentMove.getOriginTile();
+        Tile kingTile = currentRound.getOriginTile();
 
         int kingX = kingTile.getTileX(), kingY = kingTile.getTileY();
         int rookOriginX = toRight ? kingX + 3 : kingX - 4;
         int rookDestX = toRight ? kingX + 1 : kingX - 1;
 
-        Tile rookTile = tiles[rookOriginX][kingY];
-        Tile destinationTile = tiles[rookDestX][kingY];
+        Tile rookTile = board[rookOriginX][kingY];
+        Tile destinationTile = board[rookDestX][kingY];
         StackPane placeHolder = destinationTile.getNode();
 
         updateChessBoard(rookTile, destinationTile, placeHolder);
         updateTileData(rookTile, destinationTile, placeHolder);
 
-        currentMove.addDestinationTile(rookTile);
+        currentRound.addDestinationTile(rookTile);
         return Arrays.asList(rookTile, destinationTile);
     }
 
     private boolean getCastleDirection(Tile destinationTile) {
-        Tile originTile = currentMove.getOriginTile();
+        Tile originTile = currentRound.getOriginTile();
 
         int originX = originTile.getTileX();
         int destX = destinationTile.getTileX();
@@ -103,7 +110,7 @@ public class Game {
 
     private boolean isCastleMove(Tile destinationTile) {
 
-        Tile originTile = currentMove.getOriginTile();
+        Tile originTile = currentRound.getOriginTile();
         int originX = originTile.getTileX(), originY = originTile.getTileY();
 
         Piece movedPiece = originTile.getPiece();
@@ -117,10 +124,15 @@ public class Game {
         return Math.abs(destX - originX) == 2;
     }
 
-    private StackPane getTilePlaceHolder(Tile destinationTile) {
+    private StackPane getTilePlaceHolder(Tile destinationTile, boolean npcMove) {
 
-        if (destinationTile.isOccupied() && !destinationTile.getPiece().isPlayer()) {
-            destinationTile.getPiece().setActive(false);
+        if (destinationTile.isOccupied()) {
+            if (npcMove && destinationTile.getPiece().isPlayer())
+                destinationTile.getPiece().setActive(false);
+
+            else if (!npcMove && !destinationTile.getPiece().isPlayer())
+                destinationTile.getPiece().setActive(false);
+
             return new StackPane();
         }
         return destinationTile.getNode();

@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
@@ -16,6 +17,7 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
 
@@ -48,6 +50,7 @@ public class Controller implements Initializable {
     private String userAlliance = "white";
     private boolean interactiveBoard = false;
     private Game game;
+    private final Engine engine = new Engine();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -286,6 +289,7 @@ public class Controller implements Initializable {
         fillUnoccupiedTiles();
 
         for (Piece piece : pieces) {
+            piece.createNode();
             StackPane node = piece.getNode();
             node.setOnMouseClicked(e -> newTileSelection(piece.getTileOccupying()));
 
@@ -363,9 +367,29 @@ public class Controller implements Initializable {
     }
     
     private void npcResponse() {
+
         interactiveBoard = false;
-        // the long awaited hard part
-        interactiveBoard = true;
+        Tile[][] board = boardBackground.getTiles();
+
+        Timer evaluateBestMove = new Timer();
+        evaluateBestMove.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    Tile[] move = engine.executeMove(board, 4);
+
+                    int originX = move[0].getTileX(), originY = move[0].getTileY();
+                    int destX = move[1].getTileX(), destY = move[1].getTileY();
+
+                    Tile originTile = board[originX][originY];
+                    Tile destinationTile = board[destX][destY];
+
+                    game.makeNPCMove(originTile, destinationTile);
+                    interactiveBoard = true;
+                });
+            }
+        }, 500);
+
     }
 
     protected void setStage(Stage stage) {

@@ -1,9 +1,8 @@
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-
 import java.util.HashSet;
 
-class Move {
+class Round {
 
     private final Tile[][] board;
     private final HashSet<int[]> moveCoordinates = new HashSet<>();
@@ -11,15 +10,17 @@ class Move {
     private final Tile originTile;
     private final int originX;
     private final int originY;
+    private final boolean isNPC;
     private boolean inProgress;
 
-    protected Move(Tile originTile, Tile[][] board) {
+    protected Round(Tile originTile, Tile[][] board, boolean isNPC) {
         this.board = board;
 
         this.originTile = originTile;
         originX = originTile.getTileX();
         originY = originTile.getTileY();
 
+        this.isNPC = isNPC;
         inProgress = true;
     }
 
@@ -27,11 +28,15 @@ class Move {
         return originTile;
     }
 
+    protected HashSet<Tile> getDestinationTiles() {
+        return destinationTiles;
+    }
+
     protected boolean isInProgress() {
         return inProgress;
     }
 
-    protected void endMove() {
+    protected void endRound() {
         inProgress = false;
         selectPaths(false);
     }
@@ -102,7 +107,7 @@ class Move {
                 }
             }
         }
-        addCastlePaths();
+//        addCastlePaths(); todo not working with engine
     }
 
     private void addCastlePaths() {
@@ -265,6 +270,9 @@ class Move {
         }
 
         private boolean hasOpponent() {
+            if (isNPC)
+                return isOccupied() && board[destX][destY].getPiece().isPlayer();
+
             return isOccupied() && !board[destX][destY].getPiece().isPlayer();
         }
 
@@ -272,7 +280,8 @@ class Move {
             if (!exists()) return false;
 
             if (board[destX][destY].isOccupied())
-                return !board[destX][destY].getPiece().isPlayer();
+                if (isNPC) return board[destX][destY].getPiece().isPlayer();
+                else return !board[destX][destY].getPiece().isPlayer();
             else
                 return true;
         }

@@ -25,11 +25,10 @@ public class Piece {
         this.width = width;
         this.height = height;
 
-        createNode();
         assignValue();
     }
 
-    protected String getColor() {
+    protected String getAlliance() {
         return color;
     }
 
@@ -58,7 +57,7 @@ public class Piece {
         return new int[] {xLocation, yLocation};
     }
 
-    private void createNode() {
+    protected void createNode() {
         try {
             String path = "Images/" + color + " " + name;
 
