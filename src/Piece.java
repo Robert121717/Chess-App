@@ -100,7 +100,7 @@ public class Piece {
         return value;
     }
 
-    private void assignValue() { // TODO ?
+    private void assignValue() {
         switch (name) {
             case "queen" -> value = 9;
             case "rook" -> value = 5;

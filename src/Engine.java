@@ -1,94 +1,127 @@
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Engine {
 
-    private final Tree tree = new Tree();
+    private final Player npc;
+    private final Player user;
 
-    protected Tile[] executeMove(Tile[][] board, int depth) {
-
-//        long start = System.currentTimeMillis();
-        Move move = findBestMove(board, depth);
-//        long end = System.currentTimeMillis() - start;
-//
-//        Tile originTile = move.originTile;
-//        Tile destTile = move.destinationTile;
-//
-//        System.out.println("Done; took " + end + " milliseconds.\n" +
-//                "Move | Source: " + originTile.getTileX() + ", " + originTile.getTileY() +
-//                " - Dest: " + destTile.getTileX() + ", " + destTile.getTileY());
-
-        return new Tile[] { move.originTile, move.destinationTile };
+    protected Engine(Player npc, Player user) {
+        this.npc = npc;
+        this.user = user;
     }
 
-    private Move findBestMove(Tile[][] gameBoard, int depth) {
+    // todo check for pawn going to end of board
+    protected Tile[] findBestMove(Tile[][] gameBoard, int depth) {
         int highestVal = Integer.MIN_VALUE;
         int currentVal;
         Move bestMove = null;
 
-        Tile[][] clonedBoard = ShadowBoard.cloneBoard(gameBoard);
-        for (Move move : ShadowBoard.getNPCMoves(clonedBoard)) {
+        Tile[][] clonedBoard = Board.cloneBoard(gameBoard);
+//        print(Board.getNPCMoves(clonedBoard));
+        for (Move move : Board.getNPCMoves(clonedBoard)) {
 
-            Tile[][] updatedBoard = ShadowBoard.shadowExecute(move, clonedBoard);
-            currentVal = tree.min(updatedBoard, depth - 1);
+            Tile[][] updatedBoard = Board.executeMove(move, clonedBoard);
+            currentVal = max(updatedBoard, depth - 1);
 
             if (highestVal <= currentVal) {
                 highestVal = currentVal;
                 bestMove = move;
             }
         }
-        return bestMove;
+        if (bestMove == null) return null;
+        return new Tile[] { bestMove.originTile, bestMove.destinationTile };
+    }
+
+    private void print(List<Move> moves) {
+        for (Move move : moves) {
+            Tile originTile = move.originTile;
+            Tile destTile = move.destinationTile;
+
+            System.out.println("Potential Move | (" + originTile.getTileX() + ", " + originTile.getTileY() +
+                    ") to (" + destTile.getTileX() + ", " + destTile.getTileY() + ")");
+        }
+    }
+
+    private void print(Move move) {
+        Tile destTile = move.destinationTile;
+
+        if (destTile.isOccupied() && !destTile.getPiece().isPlayer())
+            System.out.println("Attack | (" + move.originTile.getTileX() + ", " + move.originTile.getTileY() +
+                    ") to (" + destTile.getTileX() + ", " + destTile.getTileY() + ")");
     }
 
     private int evaluateBoard(Tile[][] board, int depth) {
-        int val = 0;
+
+        int pieceVal = getPieceValues(board);
+        int availableMoves = Board.getNPCMoves(board).size();
+
+        if (depth != 0) pieceVal *= depth;
+
+        return pieceVal + availableMoves;
+    }
+
+    private int getPieceValues(Tile[][] board) {
+        int npcVal = 0, inactiveVal = 0;
+
         for (Tile[] col : board) {
             for (Tile tile : col) {
-                if (tile.isOccupied() && !tile.getPiece().isPlayer())
-                    val += tile.getPiece().getValue();
+                if (tile.isOccupied()) {
+                    Piece occupyingPiece = tile.getPiece();
+
+                    if (occupyingPiece.isActive() && !occupyingPiece.isPlayer()) {
+                        npcVal += occupyingPiece.getValue();
+
+                    } else if (!occupyingPiece.isActive() && occupyingPiece.isPlayer())
+                        inactiveVal += occupyingPiece.getValue();
+                }
             }
         }
-        return val;
+        return inactiveVal != 0 ? inactiveVal * npcVal : npcVal;
     }
 
-    private class Tree {
+    private int min(Tile[][] board, int depth) {
 
-        private int min(Tile[][] board, int depth) {
+        if (depth == 0)
+            return evaluateBoard(board, depth);
 
-            if (depth == 0 /*|| check */)
-                return evaluateBoard(board, depth);
+        int lowestVal = Integer.MAX_VALUE;
+        for (Move move : Board.getPlayerMoves(board)) {
 
-            int lowestVal = Integer.MAX_VALUE;
-            for (Move move : ShadowBoard.getPlayerMoves(board)) {
+            Tile[][] updatedBoard = Board.executeMove(move, board);
+            int currentVal = max(updatedBoard, depth - 1);
 
-                Tile[][] updatedBoard = ShadowBoard.shadowExecute(move, board);
-                int currentVal = max(updatedBoard, depth - 1);
-
-                if (currentVal < lowestVal) lowestVal = currentVal;
-            }
-            return lowestVal;
+            if (currentVal < lowestVal) lowestVal = currentVal;
+            Board.resetBoard(move, board);
         }
-
-        private int max(Tile[][] board, int depth) {
-
-            if (depth == 0 /*|| check */)
-                return evaluateBoard(board, depth);
-
-            int highestVal = Integer.MIN_VALUE;
-            for (Move move : ShadowBoard.getNPCMoves(board)) {
-
-                Tile[][] updatedBoard = ShadowBoard.shadowExecute(move, board);
-                int currentVal = min(updatedBoard, depth - 1);
-
-                if (highestVal < currentVal) highestVal = currentVal;
-            }
-            return highestVal;
-        }
+        return lowestVal;
     }
 
-    private static class ShadowBoard {
+    private int max(Tile[][] board, int depth) {
 
-        private static HashSet<Move> getNPCMoves(Tile[][] board) {
-            HashSet<Move> possibleMoves = new HashSet<>();
+        if (depth == 0 || userInCheck(board))
+            return evaluateBoard(board, depth);
+
+        int highestVal = Integer.MIN_VALUE;
+        for (Move move : Board.getNPCMoves(board)) {
+
+            Tile[][] updatedBoard = Board.executeMove(move, board);
+            int currentVal = min(updatedBoard, depth - 1);
+
+            if (highestVal < currentVal) highestVal = currentVal;
+            Board.resetBoard(move, board);
+        }
+        return highestVal;
+    }
+
+    private boolean userInCheck(Tile[][] board) {
+        return Board.hasCheck(board, user) || Board.hasCheckMate(board, user) || Board.hasStaleMate(board, user);
+    }
+
+    private static class Board {
+
+        private static List<Move> getNPCMoves(Tile[][] board) {
+            List<Move> possibleMoves = new ArrayList<>();
 
             for (Tile[] col : board) {
                 for (Tile tile : col) {
@@ -106,8 +139,8 @@ public class Engine {
             return possibleMoves;
         }
 
-        private static HashSet<Move> getPlayerMoves(Tile[][] board) {
-            HashSet<Move> possibleMoves = new HashSet<>();
+        private static List<Move> getPlayerMoves(Tile[][] board) {
+            List<Move> possibleMoves = new ArrayList<>();
 
             for (Tile[] col : board) {
                 for (Tile tile : col) {
@@ -123,6 +156,21 @@ public class Engine {
                 }
             }
             return possibleMoves;
+        }
+
+        protected static boolean hasCheck(Tile[][] board, Player user) {
+
+            return false;
+        }
+
+        protected static boolean hasCheckMate(Tile[][] board, Player user) {
+
+            return false;
+        }
+
+        protected static boolean hasStaleMate(Tile[][] board, Player user) {
+
+            return  false;
         }
 
         private static Tile cloneTile(Tile source) {
@@ -151,7 +199,7 @@ public class Engine {
             return clone;
         }
 
-        private static Tile[][] shadowExecute(Move move, Tile[][] board) {
+        private static Tile[][] executeMove(Move move, Tile[][] board) {
 
             Tile originTile = cloneTile(move.originTile);
             Tile destinationTile = cloneTile(move.destinationTile);
@@ -161,18 +209,27 @@ public class Engine {
 
             destinationTile.setPiece(pieceMoved);
             originTile.setPiece(null);
-            if (pieceRemoved != null)
-                pieceRemoved.setActive(false);
-
-            Tile[][] updatedBoard = cloneBoard(board);
+            if (pieceRemoved != null) pieceRemoved.setActive(false);
 
             int sourceX = originTile.getTileX(), sourceY = originTile.getTileY();
             int destX = destinationTile.getTileX(), destY = destinationTile.getTileY();
 
-            updatedBoard[sourceX][sourceY] = destinationTile;
-            updatedBoard[destX][destY] = originTile;
+            board[sourceX][sourceY] = destinationTile;
+            board[destX][destY] = originTile;
 
-            return updatedBoard;
+            return board;
+        }
+
+        private static void resetBoard(Move move, Tile[][] board) {
+
+            Tile originTile = move.originTile;
+            Tile destTile = move.destinationTile;
+
+            int originX = originTile.getTileX(), originY = originTile.getTileY();
+            int destX = destTile.getTileX(), destY = destTile.getTileY();
+
+            board[originX][originY] = originTile;
+            board[destX][destY] = originTile;
         }
 
         private static Tile[][] cloneBoard(Tile[][] board) {

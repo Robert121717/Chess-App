@@ -6,6 +6,9 @@ public class Player {
     private final Tile[][] tiles;
     private final String color;
     private final boolean npc;
+    private boolean isInCheck;
+    private boolean isInCheckMate;
+    private boolean isInStaleMate;
     private final int backRow;
 
     protected Player(Tile[][] tiles, String color, boolean npc) {
@@ -128,18 +131,28 @@ public class Player {
         }
     }
 
-    protected HashSet<Piece> getPieces() {
-        return pieces;
+    protected boolean isInCheck() {
+        return isInCheck;
     }
 
-//    protected HashSet<Move> getPossibleMoves(Tile[][] board) {
-//        HashSet<Move> moves = new HashSet<>();
-//
-//        for (Piece piece : pieces) {
-//            Move move = new Move(piece.getTileOccupying(), board);
-//            move.addPathsForPiece(piece);
-//            moves.add(move);
-//        }
-//        return moves;
-//    }
+    protected boolean isInCheckMate() {
+        return isInCheckMate;
+    }
+
+    protected boolean isInStaleMate() {
+        return  isInStaleMate;
+    }
+
+    protected void setInCheck(boolean isInCheck) {
+        this.isInCheck = isInCheck;
+    }
+
+    protected void setInCheckMate(boolean isInCheckMate) {
+        this.isInCheckMate = isInCheckMate;
+        if (!isInCheckMate) isInCheck = false;
+    }
+
+    protected void setInStaleMate(boolean isInStaleMate) {
+        this.isInStaleMate = isInStaleMate;
+    }
 }

@@ -17,7 +17,6 @@ import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
 
@@ -48,9 +47,9 @@ public class Controller implements Initializable {
     private GridPane chessBoard;
     private CheckerBoard boardBackground;
     private String userAlliance = "white";
-    private boolean interactiveBoard = false;
+    private boolean allowUserInteraction = false;
     private Game game;
-    private final Engine engine = new Engine();
+    private Engine engine;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -270,7 +269,7 @@ public class Controller implements Initializable {
     private void loadBoard(ActionEvent e) {
         newGamePopup.hide();
         newGameButton.setSelected(false);
-        interactiveBoard = true;
+        allowUserInteraction = true;
 
         boardBackground = new CheckerBoard(tileFill1, tileFill2, 55);
 
@@ -282,6 +281,7 @@ public class Controller implements Initializable {
 
         game = new Game(chessBoard, boardBackground.getTiles(), userAlliance);
         configureBoard();
+        engine = new Engine(game.getNPC(), game.getUser());
     }
 
     private void configureBoard() {
@@ -337,7 +337,7 @@ public class Controller implements Initializable {
     }
 
     private void newTileSelection(Tile clickedTile) {
-       if (!interactiveBoard) return;
+       if (!allowUserInteraction) return;
        closePopups();
 
        if (clickedTile.isDestinationTile()) {
@@ -367,29 +367,39 @@ public class Controller implements Initializable {
     }
     
     private void npcResponse() {
+        allowUserInteraction = false;
 
-        interactiveBoard = false;
-        Tile[][] board = boardBackground.getTiles();
-
-        Timer evaluateBestMove = new Timer();
-        evaluateBestMove.schedule(new TimerTask() {
+        Timer npcResponse = new Timer();
+        npcResponse.schedule(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> {
-                    Tile[] move = engine.executeMove(board, 4);
-
-                    int originX = move[0].getTileX(), originY = move[0].getTileY();
-                    int destX = move[1].getTileX(), destY = move[1].getTileY();
-
-                    Tile originTile = board[originX][originY];
-                    Tile destinationTile = board[destX][destY];
-
-                    game.makeNPCMove(originTile, destinationTile);
-                    interactiveBoard = true;
-                });
+                Platform.runLater(() -> runEngine());
             }
-        }, 500);
+        }, 200);
+        allowUserInteraction = true;
+    }
 
+    private void runEngine() {
+        Tile[][] board = boardBackground.getTiles();
+
+        Tile[] move = engine.findBestMove(board, 4);
+        if (move == null) {
+            endGame(game.getUser());
+            return;
+        }
+        // todo check for checkmate/stalemate/check
+        Tile originTile = board[move[0].getTileX()][move[0].getTileY()];
+        Tile destinationTile = board[move[1].getTileX()][move[1].getTileY()];
+
+        game.makeNPCMove(originTile, destinationTile);
+
+        originTile.getNode().setOnMouseClicked(e -> newTileSelection(originTile));
+        destinationTile.getNode().setOnMouseClicked(e -> newTileSelection(destinationTile));
+    }
+
+    private void endGame(Player winner) {
+        // todo
+        System.out.println(winner == game.getNPC() ? "you lose!" : "you win?");
     }
 
     protected void setStage(Stage stage) {

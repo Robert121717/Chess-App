@@ -61,6 +61,7 @@ public class Game {
     }
 
     protected List<Tile> finishMove(Tile destinationTile) {
+        // todo check for pawn going to end of board
         List<Tile> modifiedTiles = new ArrayList<>();
 
         if (isCastleMove(destinationTile)) {
@@ -168,5 +169,13 @@ public class Game {
         movedPiece.setTileOccupying(destinationTile);
         movedPiece.setLocation(destinationTile.getTileX(), destinationTile.getTileY());
         movedPiece.disableCastle();
+    }
+
+    protected Player getNPC() {
+        return npc;
+    }
+
+    protected Player getUser() {
+        return user;
     }
 }

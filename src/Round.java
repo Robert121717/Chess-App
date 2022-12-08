@@ -155,16 +155,21 @@ class Round {
         // todo en passant
 
         // moving forward one or two spaces
-        int iterations = originY == 6 ? 2 : 1;
-        for (int row = 1; row <= iterations; ++row) {
-            Path path = new Path(originX, originY, 0, -row);
+        int destinationRows;
+        if (isNPC) destinationRows = originY == 1 ? 2 : 1;
+        else destinationRows = originY == 6 ? 2 : 1;
+
+        for (int row = 1; row <= destinationRows; ++row) {
+            int deltaY = isNPC ? row : -row;
+            Path path = new Path(originX, originY, 0, deltaY);
 
             if (path.exists() && !path.isOccupied())
-                moveCoordinates.add(new int[]{path.getDestX(), path.getDestY()});
+                moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
         }
         // attacking opponent piece diagonally
+        int deltaY = isNPC ? 1 : -1;
         for (int col = -1; col <= 1; col += 2) {
-            Path path = new Path(originX, originY, col, -1);
+            Path path = new Path(originX, originY, col, deltaY);
 
             if (path.exists() && path.hasOpponent())
                 moveCoordinates.add(new int[] { path.getDestX(), path.getDestY() });
